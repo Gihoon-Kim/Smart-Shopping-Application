@@ -37,5 +37,4 @@ public class LoginActivity extends AppCompatActivity {
         // Add
         // for Bit Bucket
     }
-
 }
