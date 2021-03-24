@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">MarketApp</string>
+    <string name="id">ID</string>
+    <string name="password">password</string>
+    <string name="continue_as_guest">Continue as Guest</string>
+    <string name="login">Login</string>
+    <string name="email">Email</string>
+    <string name="passwordCheck">passwordCheck</string>
+    <string name="register">Register</string>
+</resources>
