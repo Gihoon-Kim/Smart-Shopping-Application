@@ -1,6 +1,7 @@
 package com.example.marketapp;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -22,8 +23,6 @@ public class LoginActivity extends Activity {
     EditText editTextID;
     @BindView(R.id.editTextPassword)
     EditText editTextPassword;
-    @BindView(R.id.buttonLogin)
-    Button buttonLogin;
     private FirebaseAuth mAuth;
 
     @Override
@@ -41,6 +40,13 @@ public class LoginActivity extends Activity {
     public void onLoginButtonClicked() {
 
         signIn();
+    }
+
+    @OnClick(R.id.buttonRegister)
+    public void onRegisterButtonClicked() {
+
+        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+        startActivity(intent);
     }
 
     @Override

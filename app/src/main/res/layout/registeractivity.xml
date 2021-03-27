@@ -7,17 +7,6 @@
     android:gravity="center">
 
     <EditText
-        android:id="@+id/editTextID"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="50dp"
-        android:hint="@string/id"
-        android:inputType="text|number"
-        android:importantForAutofill="no" />
-
-    <EditText
         android:id="@+id/editTextEmail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
