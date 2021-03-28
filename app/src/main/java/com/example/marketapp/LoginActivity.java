@@ -3,13 +3,8 @@ package com.example.marketapp;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -18,12 +13,14 @@ import butterknife.OnClick;
 public class LoginActivity extends Activity {
 
     private static final String TAG = "LoginActivity";
+    private static final String BASE_URL = "https://sundaland.herokuapp.com/";
 
     @BindView(R.id.editTextID)
     EditText editTextID;
     @BindView(R.id.editTextPassword)
     EditText editTextPassword;
-    private FirebaseAuth mAuth;
+    @BindView(R.id.textViewError)
+    TextView textViewError;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,14 +29,14 @@ public class LoginActivity extends Activity {
 
         ButterKnife.bind(this);
 
-        // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
+        // Fulfillment HttpURLConnection through AsyncTask
+        NetworkTask networkTask = new NetworkTask(BASE_URL, null, textViewError);
+        networkTask.execute();
     }
 
     @OnClick(R.id.buttonLogin)
     public void onLoginButtonClicked() {
 
-        signIn();
     }
 
     @OnClick(R.id.buttonRegister)
@@ -47,35 +44,5 @@ public class LoginActivity extends Activity {
 
         Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
         startActivity(intent);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Check if user is signed in (non-null) and update UI accordingly
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-    }
-
-    private void signIn() {
-
-        String email = editTextID.getText().toString();
-        String password = editTextPassword.getText().toString();
-
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-
-                    if (task.isSuccessful()) {
-
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d(TAG, "signInWithEmail:success");
-                        FirebaseUser user = mAuth.getCurrentUser();
-                    } else {
-
-                        // If sign in fails, display a message to the user
-                        Log.w(TAG, "signInWithEmail:failure", task.getException());
-                        Toast.makeText(LoginActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
-                    }
-                });
     }
 }
