@@ -1,6 +1,5 @@
 package com.example.marketapp;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -19,9 +18,5 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.mainactivity);
 
-        Intent intent = getIntent();
-        String userEmail = intent.getStringExtra("userEmail");
-
-        textViewUserEmail.setText(userEmail);
     }
 }

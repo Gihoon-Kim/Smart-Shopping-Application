@@ -8,4 +8,6 @@
     <string name="passwordCheck">passwordCheck</string>
     <string name="register">Register</string>
     <string name="name">Name</string>
+    <string name="login_failure">Login Failure</string>
+    <string name="regist_failure">Registration Failure</string>
 </resources>

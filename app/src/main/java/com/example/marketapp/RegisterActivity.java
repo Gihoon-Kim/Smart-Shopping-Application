@@ -1,9 +1,13 @@
 package com.example.marketapp;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
@@ -17,7 +21,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 import butterknife.BindView;
@@ -27,6 +30,7 @@ import butterknife.OnClick;
 public class RegisterActivity extends Activity {
 
     private static final String TAG = "RegisterActivity";
+    private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users";
 
     @BindView(R.id.editTextName)
     EditText editTextName;
@@ -34,10 +38,13 @@ public class RegisterActivity extends Activity {
     EditText editTextEmail;
     @BindView(R.id.editTextPassword)
     EditText editTextPassword;
+    @BindView(R.id.textViewError)
+    TextView textViewError;
 
     String userName = "";
     String userEmail = "";
     String userPassword = "";
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,17 +63,18 @@ public class RegisterActivity extends Activity {
         new RegisterRequest().execute();
     }
 
-    public class RegisterRequest extends AsyncTask<Void, Void, String> {
+    public class RegisterRequest extends AsyncTask<Void, Void, Void> {
 
-        private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users";
+        String errorMsg = "";
 
         @Override
-        protected String doInBackground(Void... voids) {
+        protected Void doInBackground(Void... voids) {
 
             JSONObject jsonObject = new JSONObject();
 
             try {
 
+                // Create JSONObject and put data as Key-value format
                 jsonObject.accumulate("name", userName);
                 jsonObject.accumulate("email", userEmail);
                 jsonObject.accumulate("password", userPassword);
@@ -79,11 +87,11 @@ public class RegisterActivity extends Activity {
                     URL url = new URL(BASE_URL);
                     connection = (HttpURLConnection) url.openConnection();
 
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Cache-Control", "no-cache");
-                    connection.setRequestProperty("Content-Type", "application/json");
-                    connection.setDoInput(true);
-                    connection.setDoOutput(true);
+                    connection.setRequestMethod("POST");    // send by POST Method
+                    connection.setRequestProperty("Cache-Control", "no-cache"); // Set Cache
+                    connection.setRequestProperty("Content-Type", "application/json");  // Send by Application/JSON format
+                    connection.setDoInput(true);    // Send post data as OutStream
+                    connection.setDoOutput(true);   // Get response by server as InputStream
                     connection.connect();
 
                     // Create Stream to Send to server
@@ -97,21 +105,20 @@ public class RegisterActivity extends Activity {
                     // get Data from server
                     InputStream inputStream = connection.getInputStream();
                     reader = new BufferedReader(new InputStreamReader(inputStream));
-                    StringBuffer buffer = new StringBuffer();
+                    StringBuilder builder = new StringBuilder();
 
-                    String line = "";
+                    String line;
                     while ((line = reader.readLine()) != null) {
 
-                        buffer.append(line);
+                        builder.append(line);
                     }
 
-                    return buffer.toString();
-                } catch (MalformedURLException e) {
-
-                    e.printStackTrace();
+                    Log.i(TAG, builder.toString());
+                    errorMsg = builder.toString();
                 } catch (IOException e) {
 
                     e.printStackTrace();
+                    errorMsg = "Registration Error";
                 } finally {
 
                     if (connection != null) {
@@ -134,9 +141,22 @@ public class RegisterActivity extends Activity {
 
                 e.printStackTrace();
             }
-
             return null;
         }
-    }
 
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            if (errorMsg.equals("Registration Error")) {
+
+                textViewError.setText(R.string.regist_failure);
+            } else {
+
+                Toast.makeText(getApplicationContext(), "Registration Success", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+        }
+    }
 }
