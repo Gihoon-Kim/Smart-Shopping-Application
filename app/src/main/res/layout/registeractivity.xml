@@ -7,14 +7,14 @@
     android:gravity="center">
 
     <EditText
-        android:id="@+id/editTextID"
+        android:id="@+id/editTextName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="20dp"
         android:layout_marginLeft="50dp"
         android:layout_marginRight="50dp"
-        android:hint="@string/id"
-        android:inputType="text|number"
+        android:hint="@string/name"
+        android:inputType="textWebEmailAddress"
         android:importantForAutofill="no" />
 
     <EditText
@@ -36,17 +36,6 @@
         android:layout_marginLeft="50dp"
         android:layout_marginRight="50dp"
         android:hint="@string/password"
-        android:inputType="textPassword|numberPassword"
-        android:importantForAutofill="no" />
-
-    <EditText
-        android:id="@+id/editTextPasswordCheck"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="50dp"
-        android:hint="@string/passwordCheck"
         android:inputType="textPassword|numberPassword"
         android:importantForAutofill="no" />
 
