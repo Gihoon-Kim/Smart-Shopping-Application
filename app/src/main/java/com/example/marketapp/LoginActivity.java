@@ -40,9 +40,8 @@ public class LoginActivity extends Activity {
     String userEmail = "";
     String userPassword = "";
 
-    String test;
-    //String
-
+    // 진성아 보이니
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
