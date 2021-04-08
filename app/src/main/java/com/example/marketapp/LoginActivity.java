@@ -28,6 +28,7 @@ import butterknife.OnClick;
 public class LoginActivity extends Activity {
 
     private static final String TAG = "LoginActivity";
+    private static final String LOGIN_ERROR = "Login Error";
     private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users/login";
 
     @BindView(R.id.editTextEmail)
@@ -39,6 +40,7 @@ public class LoginActivity extends Activity {
 
     String userEmail = "";
     String userPassword = "";
+    StringBuilder builder = new StringBuilder();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +107,6 @@ public class LoginActivity extends Activity {
                     // get Data from server
                     InputStream inputStream = connection.getInputStream();
                     reader = new BufferedReader(new InputStreamReader(inputStream));
-                    StringBuilder builder = new StringBuilder();
 
                     String line;
                     while ((line = reader.readLine()) != null) {
@@ -115,10 +116,11 @@ public class LoginActivity extends Activity {
 
                     Log.i(TAG, builder.toString());
                     errorMsg = builder.toString();
+
                 } catch (IOException e) {
 
                     e.printStackTrace();
-                    errorMsg = "Login Error";
+                    errorMsg = LOGIN_ERROR;
                 } finally {
 
                     if (connection != null) {
@@ -149,13 +151,15 @@ public class LoginActivity extends Activity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
-            if (errorMsg.equals("Login Error")) {
+            if (errorMsg.equals(LOGIN_ERROR)) {
 
                 textViewError.setText(R.string.login_failure);
             } else {
 
                 Toast.makeText(getApplicationContext(), "Login Success", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                // Send data from server to UserMainActivity
+                Intent intent = new Intent(LoginActivity.this, UserMainActivity.class);
+                intent.putExtra("serverMessage", builder.toString());
                 startActivity(intent);
             }
         }
