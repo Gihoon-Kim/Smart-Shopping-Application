@@ -10,4 +10,8 @@
     <string name="name">Name</string>
     <string name="login_failure">Login Failure</string>
     <string name="regist_failure">Registration Failure</string>
+    <string name="hello">Hello</string>
+    <string name="view_store_list">View Store List</string>
+    <string name="user_inform">user Inform</string>
+    <string name="menu">menu</string>
 </resources>
