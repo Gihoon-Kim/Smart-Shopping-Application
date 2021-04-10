@@ -9,6 +9,13 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -20,6 +27,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,8 +37,8 @@ import butterknife.OnClick;
 public class LoginActivity extends Activity {
 
     private static final String TAG = "LoginActivity";
-    private static final String LOGIN_ERROR = "Login Error";
     private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users/login";
+    private static final String LOGIN_ERROR = "Error";
 
     @BindView(R.id.editTextEmail)
     EditText editTextEmail;
@@ -41,6 +50,7 @@ public class LoginActivity extends Activity {
     String userEmail = "";
     String userPassword = "";
     StringBuilder builder = new StringBuilder();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
