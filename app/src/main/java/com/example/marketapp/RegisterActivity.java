@@ -11,7 +11,10 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONStringer;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -31,6 +34,7 @@ public class RegisterActivity extends Activity {
 
     private static final String TAG = "RegisterActivity";
     private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users";
+    private static final String REGISTRATION_ERROR = "Registration Error";
 
     @BindView(R.id.editTextName)
     EditText editTextName;
@@ -38,12 +42,24 @@ public class RegisterActivity extends Activity {
     EditText editTextEmail;
     @BindView(R.id.editTextPassword)
     EditText editTextPassword;
+    @BindView(R.id.editTextAddress)
+    EditText editTextAddress;
+    @BindView(R.id.editTextCity)
+    EditText editTextCity;
+    @BindView(R.id.editTextPostalCode)
+    EditText editTextPostalCode;
+    @BindView(R.id.editTextCountry)
+    EditText editTextCountry;
     @BindView(R.id.textViewError)
     TextView textViewError;
 
     String userName = "";
     String userEmail = "";
     String userPassword = "";
+    String userAddress = "";
+    String userCity = "";
+    String userPostalCode = "";
+    String userCountry = "";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,6 +76,10 @@ public class RegisterActivity extends Activity {
         userEmail = editTextEmail.getText().toString();
         userName = editTextName.getText().toString();
         userPassword = editTextPassword.getText().toString();
+        userAddress = editTextAddress.getText().toString();
+        userCity = editTextCity.getText().toString();
+        userPostalCode = editTextPostalCode.getText().toString();
+        userCountry = editTextCountry.getText().toString();
         new RegisterRequest().execute();
     }
 
@@ -74,11 +94,19 @@ public class RegisterActivity extends Activity {
 
             try {
 
-                // Create JSONObject and put data as Key-value format
-                jsonObject.accumulate("name", userName);
-                jsonObject.accumulate("email", userEmail);
-                jsonObject.accumulate("password", userPassword);
+                //Create JSONObject and put data as Key-value format
+                jsonObject.put("name", userName);
+                jsonObject.put("email", userEmail);
+                jsonObject.put("password", userPassword);
 
+                JSONObject addressParam = new JSONObject();
+
+                addressParam.put("address", userAddress);
+                addressParam.put("city", userCity);
+                addressParam.put("postalCode", userPostalCode);
+                addressParam.put("country", userCountry);
+
+                jsonObject.put("userAddress", addressParam);
                 HttpURLConnection connection = null;
                 BufferedReader reader = null;
 
@@ -96,6 +124,7 @@ public class RegisterActivity extends Activity {
 
                     // Create Stream to Send to server
                     OutputStream outputStream = connection.getOutputStream();
+
                     // create Buffer and put
                     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
                     writer.write(jsonObject.toString());
@@ -113,12 +142,32 @@ public class RegisterActivity extends Activity {
                         builder.append(line);
                     }
 
+                    JSONObject flag;
+                    String isError = "";
+                    try {
+
+                        flag = new JSONObject(builder.toString());
+                        Log.d(TAG, "builder.toString()" + builder.toString());
+                        isError = flag.getString("message");
+                        Log.d(TAG, "isError " + isError);
+
+                        if (!isError.equals("")) {
+
+                            errorMsg = REGISTRATION_ERROR;
+                        }
+                    } catch (JSONException e) {
+
+                        Log.d(TAG, isError + "isError");
+                        e.printStackTrace();
+                    }
                     Log.i(TAG, builder.toString());
-                    errorMsg = builder.toString();
+
+
                 } catch (IOException e) {
 
                     e.printStackTrace();
-                    errorMsg = "Registration Error";
+                    Log.d(TAG, e.toString());
+                    errorMsg = REGISTRATION_ERROR;
                 } finally {
 
                     if (connection != null) {
@@ -148,7 +197,7 @@ public class RegisterActivity extends Activity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            if (errorMsg.equals("Registration Error")) {
+            if (errorMsg.equals(REGISTRATION_ERROR)) {
 
                 textViewError.setText(R.string.regist_failure);
             } else {

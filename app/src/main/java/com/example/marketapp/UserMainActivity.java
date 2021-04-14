@@ -1,6 +1,5 @@
 package com.example.marketapp;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -18,8 +17,6 @@ import androidx.annotation.Nullable;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -35,13 +32,12 @@ import butterknife.OnClick;
 
 public class UserMainActivity extends Activity {
 
+    private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users/profile";
     private static final String SERVER_MESSAGE = "serverMessage";
     private static final String TAG = "UserMainActivity";
-    private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users/profile";
-
-    static RequestQueue requestQueue;
 
     String serverMessage = "";
+    static RequestQueue requestQueue;
 
     @BindView(R.id.buttonViewStoreList)
     Button buttonViewStoreList;
@@ -90,9 +86,7 @@ public class UserMainActivity extends Activity {
 
                 case R.id.userInform:
 
-                    Intent intent = new Intent(getApplicationContext(), UserInformActivity.class);
-                    intent.putExtra(SERVER_MESSAGE, serverMessage);
-                    startActivity(intent);
+                    new RequestProfile().execute();
             }
 
             return false;
@@ -103,7 +97,6 @@ public class UserMainActivity extends Activity {
     @OnClick(R.id.buttonViewStoreList)
     public void onViewStoreListClicked() {
 
-        new RequestProfile().execute();
     }
 
     public class RequestProfile extends AsyncTask {
@@ -115,6 +108,7 @@ public class UserMainActivity extends Activity {
             JSONObject jsonObject = null;
             try {
 
+                Log.d(TAG, serverMessage);
                 jsonObject = new JSONObject(serverMessage);
                 userToken = jsonObject.getString("token");
             } catch (JSONException e) {
@@ -123,16 +117,23 @@ public class UserMainActivity extends Activity {
                 e.printStackTrace();
             }
 
-            Log.i(TAG, "Token = " + userToken);
+            Log.d(TAG, "Token = " + userToken);
 
             requestQueue = Volley.newRequestQueue(getApplicationContext());
             String finalUserToken = userToken;
 
-            final StringRequest request = new StringRequest(
+            StringRequest request = new StringRequest(
                     Request.Method.GET,
                     BASE_URL,
-                    response -> Log.i(TAG, "Response = " + response),
-                    error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show()){
+                    response -> {
+
+                        Log.d(TAG, "Response = " + response);
+                        Intent intent = new Intent(getApplicationContext(), UserInformActivity.class);
+                        intent.putExtra(SERVER_MESSAGE, response);
+                        startActivity(intent);
+                    },
+                    error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show())
+            {
 
                 public Map<String, String> getHeaders() {
 
