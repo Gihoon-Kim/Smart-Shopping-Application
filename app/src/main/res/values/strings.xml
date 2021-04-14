@@ -14,4 +14,11 @@
     <string name="view_store_list">View Store List</string>
     <string name="user_inform">user Inform</string>
     <string name="menu">menu</string>
+    <string name="address">Address</string>
+    <string name="city">City</string>
+    <string name="postal_code">Postal Code</string>
+    <string name="country">Country</string>
+    <string name="textView_user_email">User Email :</string>
+    <string name="textView_user_name">User Name :</string>
+    <string name="textView_user_address">User Address :</string>
 </resources>
