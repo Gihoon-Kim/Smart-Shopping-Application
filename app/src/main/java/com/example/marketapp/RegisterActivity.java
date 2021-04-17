@@ -11,20 +11,13 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
-import org.json.JSONArray;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONStringer;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,6 +28,9 @@ public class RegisterActivity extends Activity {
     private static final String TAG = "RegisterActivity";
     private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users";
     private static final String REGISTRATION_ERROR = "Registration Error";
+    private static final String REGISTRATION_SUCCESS = "Registration Success";
+
+    static RequestQueue requestQueue;
 
     @BindView(R.id.editTextName)
     EditText editTextName;
@@ -53,14 +49,6 @@ public class RegisterActivity extends Activity {
     @BindView(R.id.textViewError)
     TextView textViewError;
 
-    String userName = "";
-    String userEmail = "";
-    String userPassword = "";
-    String userAddress = "";
-    String userCity = "";
-    String userPostalCode = "";
-    String userCountry = "";
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,139 +61,73 @@ public class RegisterActivity extends Activity {
     @OnClick(R.id.buttonRegister)
     public void onRegisterButtonClicked() {
 
-        userEmail = editTextEmail.getText().toString();
-        userName = editTextName.getText().toString();
-        userPassword = editTextPassword.getText().toString();
-        userAddress = editTextAddress.getText().toString();
-        userCity = editTextCity.getText().toString();
-        userPostalCode = editTextPostalCode.getText().toString();
-        userCountry = editTextCountry.getText().toString();
-        new RegisterRequest().execute();
+
+        RegisterRequest();
     }
 
-    public class RegisterRequest extends AsyncTask<Void, Void, Void> {
+    public void RegisterRequest() {
 
-        String errorMsg = "";
+        String userEmail = editTextEmail.getText().toString();
+        String userName = editTextName.getText().toString();
+        String userPassword = editTextPassword.getText().toString();
+        String userAddress = editTextAddress.getText().toString();
+        String userCity = editTextCity.getText().toString();
+        String userPostalCode = editTextPostalCode.getText().toString();
+        String userCountry = editTextCountry.getText().toString();
 
-        @Override
-        protected Void doInBackground(Void... voids) {
+        JSONObject requestJsonObject = new JSONObject();
 
-            JSONObject jsonObject = new JSONObject();
+        try {
 
-            try {
+            //Create JSONObject and put data as Key-value format
+            requestJsonObject.put("name", userName);
+            requestJsonObject.put("email", userEmail);
+            requestJsonObject.put("password", userPassword);
 
-                //Create JSONObject and put data as Key-value format
-                jsonObject.put("name", userName);
-                jsonObject.put("email", userEmail);
-                jsonObject.put("password", userPassword);
+            JSONObject addressParam = new JSONObject();
 
-                JSONObject addressParam = new JSONObject();
+            addressParam.put("address", userAddress);
+            addressParam.put("city", userCity);
+            addressParam.put("postalCode", userPostalCode);
+            addressParam.put("country", userCountry);
 
-                addressParam.put("address", userAddress);
-                addressParam.put("city", userCity);
-                addressParam.put("postalCode", userPostalCode);
-                addressParam.put("country", userCountry);
+            requestJsonObject.put("userAddress", addressParam);
+        } catch (JSONException e) {
 
-                jsonObject.put("userAddress", addressParam);
-                HttpURLConnection connection = null;
-                BufferedReader reader = null;
+            e.printStackTrace();
+        }
 
-                try {
+        requestQueue = Volley.newRequestQueue(getApplicationContext());
 
-                    URL url = new URL(BASE_URL);
-                    connection = (HttpURLConnection) url.openConnection();
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                BASE_URL,
+                requestJsonObject,
+                response -> {
 
-                    connection.setRequestMethod("POST");    // send by POST Method
-                    connection.setRequestProperty("Cache-Control", "no-cache"); // Set Cache
-                    connection.setRequestProperty("Content-Type", "application/json");  // Send by Application/JSON format
-                    connection.setDoInput(true);    // Send post data as OutStream
-                    connection.setDoOutput(true);   // Get response by server as InputStream
-                    connection.connect();
+                    String responseData = response.toString();
+                    Log.d(TAG, "response = " + response);
+                    Log.d(TAG, "responseData = " + responseData);
 
-                    // Create Stream to Send to server
-                    OutputStream outputStream = connection.getOutputStream();
+                    if (responseData.equals(response.toString())) {
 
-                    // create Buffer and put
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-                    writer.write(jsonObject.toString());
-                    writer.flush();
-                    writer.close();
+                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                        intent.putExtra("serverMessage", responseData);
+                        startActivity(intent);
+                    } else {
 
-                    // get Data from server
-                    InputStream inputStream = connection.getInputStream();
-                    reader = new BufferedReader(new InputStreamReader(inputStream));
-                    StringBuilder builder = new StringBuilder();
-
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-
-                        builder.append(line);
+                        textViewError.setText(R.string.login_failure);
+                        Toast.makeText(getApplicationContext(), REGISTRATION_SUCCESS, Toast.LENGTH_SHORT).show();
                     }
+                },
+                error -> {
 
-                    JSONObject flag;
-                    String isError = "";
-                    try {
-
-                        flag = new JSONObject(builder.toString());
-                        Log.d(TAG, "builder.toString()" + builder.toString());
-                        isError = flag.getString("message");
-                        Log.d(TAG, "isError " + isError);
-
-                        if (!isError.equals("")) {
-
-                            errorMsg = REGISTRATION_ERROR;
-                        }
-                    } catch (JSONException e) {
-
-                        Log.d(TAG, isError + "isError");
-                        e.printStackTrace();
-                    }
-                    Log.i(TAG, builder.toString());
-
-
-                } catch (IOException e) {
-
-                    e.printStackTrace();
-                    Log.d(TAG, e.toString());
-                    errorMsg = REGISTRATION_ERROR;
-                } finally {
-
-                    if (connection != null) {
-
-                        connection.disconnect();
-                    }
-
-                    try {
-
-                        if (reader != null) {
-
-                            reader.close();
-                        }
-                    } catch (IOException e) {
-
-                        e.printStackTrace();
-                    }
+                    textViewError.setText(R.string.login_failure);
+                    Toast.makeText(getApplicationContext(), REGISTRATION_ERROR, Toast.LENGTH_SHORT).show();
                 }
-            } catch (Exception e) {
+        );
 
-                e.printStackTrace();
-            }
-            return null;
-        }
+        requestQueue.add(request);
 
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-
-            if (errorMsg.equals(REGISTRATION_ERROR)) {
-
-                textViewError.setText(R.string.regist_failure);
-            } else {
-
-                Toast.makeText(getApplicationContext(), "Registration Success", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
-        }
     }
 }
