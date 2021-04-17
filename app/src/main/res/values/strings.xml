@@ -21,4 +21,6 @@
     <string name="textView_user_email">User Email :</string>
     <string name="textView_user_name">User Name :</string>
     <string name="textView_user_address">User Address :</string>
+    <string name="update_profile">Update profile</string>
+    <string name="back_to_main">Back to Main</string>
 </resources>

@@ -1,6 +1,7 @@
 package com.example.marketapp;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -9,13 +10,12 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -27,8 +27,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -39,6 +38,8 @@ public class LoginActivity extends Activity {
     private static final String TAG = "LoginActivity";
     private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users/login";
     private static final String LOGIN_ERROR = "Error";
+    private static final String LOGIN_SUCCESS = "Login Success";
+    static RequestQueue requestQueue;
 
     @BindView(R.id.editTextEmail)
     EditText editTextEmail;
@@ -46,11 +47,6 @@ public class LoginActivity extends Activity {
     EditText editTextPassword;
     @BindView(R.id.textViewError)
     TextView textViewError;
-
-    String userEmail = "";
-    String userPassword = "";
-    StringBuilder builder = new StringBuilder();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,10 +59,7 @@ public class LoginActivity extends Activity {
     @OnClick(R.id.buttonLogin)
     public void onLoginButtonClicked() {
 
-        userEmail = editTextEmail.getText().toString();
-        userPassword = editTextPassword.getText().toString();
-
-        new LoginRequest().execute();
+        LoginRequest();
     }
 
     @OnClick(R.id.buttonRegister)
@@ -76,102 +69,50 @@ public class LoginActivity extends Activity {
         startActivity(intent);
     }
 
-    public class LoginRequest extends AsyncTask<Void, Void, String> {
+    public void LoginRequest() {
 
-        String errorMsg = "";
+        String userEmail = editTextEmail.getText().toString();
+        String userPassword = editTextPassword.getText().toString();
 
-        @Override
-        protected String doInBackground(Void... voids) {
+        JSONObject requestJsonObject = new JSONObject();
+        try {
 
-            JSONObject jsonObject = new JSONObject();
+            requestJsonObject.put("email", userEmail);
+            requestJsonObject.put("password", userPassword);
+        } catch (JSONException e) {
 
-            try {
+            e.printStackTrace();
+        }
 
-                // Create JSONObject and put data as Key-value format
-                jsonObject.accumulate("email", userEmail);
-                jsonObject.accumulate("password", userPassword);
+        requestQueue = Volley.newRequestQueue(getApplicationContext());
 
-                HttpURLConnection connection = null;
-                BufferedReader reader = null;
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                BASE_URL,
+                requestJsonObject,
+                response -> {
+                    String responseData = response.toString();
+                    Log.d(TAG, "response = " + response);
+                    Log.d(TAG, "responseData = " + responseData);
 
-                try {
+                    if (responseData.equals(response.toString())) {
 
-                    URL url = new URL(BASE_URL);
-                    connection = (HttpURLConnection) url.openConnection();
+                        Intent intent = new Intent(getApplicationContext(), UserMainActivity.class);
+                        intent.putExtra("serverMessage", responseData);
+                        startActivity(intent);
+                    } else {
 
-                    connection.setRequestMethod("POST");    // Send by POST method
-                    connection.setRequestProperty("Cache-Control", "no-cache"); // Set Cache
-                    connection.setRequestProperty("Content-Type", "application/json");  // Send by application/json format
-                    connection.setDoInput(true);    // Send post data as OutStream
-                    connection.setDoOutput(true);   // Get response by server as InputStream
-                    connection.connect();
-
-                    // Create Stream to send to server
-                    OutputStream outputStream = connection.getOutputStream();
-                    //Create Buffer and put
-                    BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-                    writer.write(jsonObject.toString());
-                    writer.flush();
-                    writer.close();
-
-                    // get Data from server
-                    InputStream inputStream = connection.getInputStream();
-                    reader = new BufferedReader(new InputStreamReader(inputStream));
-
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-
-                        builder.append(line);
+                        textViewError.setText(R.string.login_failure);
+                        Toast.makeText(getApplicationContext(), LOGIN_SUCCESS, Toast.LENGTH_SHORT).show();
                     }
+                },
+                error -> {
 
-                    Log.i(TAG, builder.toString());
-                    errorMsg = builder.toString();
-
-                } catch (IOException e) {
-
-                    e.printStackTrace();
-                    errorMsg = LOGIN_ERROR;
-                } finally {
-
-                    if (connection != null) {
-
-                        connection.disconnect();
-                    }
-
-                    try {
-
-                        if (reader != null) {
-
-                            reader.close();
-                        }
-                    } catch (IOException e) {
-
-                        e.printStackTrace();
-                    }
+                    textViewError.setText(R.string.login_failure);
+                    Toast.makeText(getApplicationContext(), LOGIN_ERROR, Toast.LENGTH_SHORT).show();
                 }
-            } catch (Exception e) {
+        );
 
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-
-            if (errorMsg.equals(LOGIN_ERROR)) {
-
-                textViewError.setText(R.string.login_failure);
-            } else {
-
-                Toast.makeText(getApplicationContext(), "Login Success", Toast.LENGTH_SHORT).show();
-                // Send data from server to UserMainActivity
-                Intent intent = new Intent(LoginActivity.this, UserMainActivity.class);
-                intent.putExtra("serverMessage", builder.toString());
-                startActivity(intent);
-            }
-        }
+        requestQueue.add(request);
     }
 }

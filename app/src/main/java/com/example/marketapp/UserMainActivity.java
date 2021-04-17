@@ -51,6 +51,7 @@ public class UserMainActivity extends Activity {
 
         TextView textViewUserEmail = findViewById(R.id.textViewUserEmail);
 
+        // Get data from LoginActivity
         Intent dataIntent = getIntent();
         serverMessage = dataIntent.getStringExtra(SERVER_MESSAGE);
 
@@ -86,7 +87,7 @@ public class UserMainActivity extends Activity {
 
                 case R.id.userInform:
 
-                    new RequestProfile().execute();
+                    RequestProfile();
             }
 
             return false;
@@ -97,56 +98,53 @@ public class UserMainActivity extends Activity {
     @OnClick(R.id.buttonViewStoreList)
     public void onViewStoreListClicked() {
 
+        // TODO : when button clicked, the list of stores will be appeared
+
     }
 
-    public class RequestProfile extends AsyncTask {
+    public void RequestProfile() {
 
-        @Override
-        protected Object doInBackground(Object[] objects) {
+        String userToken;
+        JSONObject jsonObject;
+        try {
 
-            String userToken;
-            JSONObject jsonObject = null;
-            try {
+            Log.d(TAG, serverMessage);
+            jsonObject = new JSONObject(serverMessage);
+            userToken = jsonObject.getString("token");
+        } catch (JSONException e) {
 
-                Log.d(TAG, serverMessage);
-                jsonObject = new JSONObject(serverMessage);
-                userToken = jsonObject.getString("token");
-            } catch (JSONException e) {
-
-                userToken = "Error";
-                e.printStackTrace();
-            }
-
-            Log.d(TAG, "Token = " + userToken);
-
-            requestQueue = Volley.newRequestQueue(getApplicationContext());
-            String finalUserToken = userToken;
-
-            StringRequest request = new StringRequest(
-                    Request.Method.GET,
-                    BASE_URL,
-                    response -> {
-
-                        Log.d(TAG, "Response = " + response);
-                        Intent intent = new Intent(getApplicationContext(), UserInformActivity.class);
-                        intent.putExtra(SERVER_MESSAGE, response);
-                        startActivity(intent);
-                    },
-                    error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show())
-            {
-
-                public Map<String, String> getHeaders() {
-
-                    HashMap<String, String> params = new HashMap<>();
-                    params.put("Authorization", "Bearer ".concat(finalUserToken));
-
-                    return params;
-                }
-            };
-
-            requestQueue.add(request);
-            return null;
+            userToken = "Error";
+            e.printStackTrace();
         }
+
+        Log.d(TAG, "Token = " + userToken);
+
+        requestQueue = Volley.newRequestQueue(getApplicationContext());
+        String finalUserToken = userToken;
+
+        StringRequest request = new StringRequest(
+                Request.Method.GET,
+                BASE_URL,
+                response -> {
+
+                    Log.d(TAG, "Response = " + response);
+                    Intent intent = new Intent(getApplicationContext(), UserInformActivity.class);
+                    intent.putExtra(SERVER_MESSAGE, response);
+                    intent.putExtra("token", finalUserToken);
+                    startActivity(intent);
+                },
+                error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show()) {
+
+            public Map<String, String> getHeaders() {
+
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorization", "Bearer ".concat(finalUserToken));
+
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
     }
 }
 
