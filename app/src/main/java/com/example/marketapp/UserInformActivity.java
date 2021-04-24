@@ -100,7 +100,7 @@ public class UserInformActivity extends Activity {
         finish();
     }
 
-    public void newProfileDialog() {
+    private void newProfileDialog() {
 
         @SuppressLint("InflateParams") View dialogView = getLayoutInflater().inflate(R.layout.addressupdatedialog, null);
         EditText etAddress = dialogView.findViewById(R.id.editTextAddress);
@@ -113,7 +113,6 @@ public class UserInformActivity extends Activity {
 
         builder.setPositiveButton("OK", (dialog, which) -> {
 
-            // TODO: setting up function when user click OK
             userAddress = etAddress.getText().toString();
             userCity = etCity.getText().toString();
             userPostalCode = etPostalCode.getText().toString();
@@ -157,7 +156,7 @@ public class UserInformActivity extends Activity {
                 BASE_URL,
                 requestJSONObject,
                 response -> {
-                    // TODO: response
+
                     Log.d(TAG, "response = " + response);
                     JSONObject dataJSONObject = null;
                     try {

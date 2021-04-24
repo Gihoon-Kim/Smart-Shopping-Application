@@ -39,6 +39,7 @@ public class LoginActivity extends Activity {
     private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users/login";
     private static final String LOGIN_ERROR = "Error";
     private static final String LOGIN_SUCCESS = "Login Success";
+    private static final String SERVER_MESSAGE = "serverMessage";
     static RequestQueue requestQueue;
 
     @BindView(R.id.editTextEmail)
@@ -91,15 +92,32 @@ public class LoginActivity extends Activity {
                 BASE_URL,
                 requestJsonObject,
                 response -> {
+                    boolean isOwner = false;
                     String responseData = response.toString();
                     Log.d(TAG, "response = " + response);
                     Log.d(TAG, "responseData = " + responseData);
+                    try {
+
+                        isOwner = response.getBoolean("isOwner");
+                        Log.d(TAG, "isOwner = " + isOwner);
+                    } catch (JSONException e) {
+
+                        e.printStackTrace();
+                    }
 
                     if (responseData.equals(response.toString())) {
 
-                        Intent intent = new Intent(getApplicationContext(), UserMainActivity.class);
-                        intent.putExtra("serverMessage", responseData);
-                        startActivity(intent);
+                        if (isOwner) {
+
+                            Intent intent = new Intent(getApplicationContext(), OwnerMainActivity.class);
+                            intent.putExtra(SERVER_MESSAGE, responseData);
+                            startActivity(intent);
+                        } else {
+
+                            Intent intent = new Intent(getApplicationContext(), UserMainActivity.class);
+                            intent.putExtra(SERVER_MESSAGE, responseData);
+                            startActivity(intent);
+                        }
                     } else {
 
                         textViewError.setText(R.string.login_failure);

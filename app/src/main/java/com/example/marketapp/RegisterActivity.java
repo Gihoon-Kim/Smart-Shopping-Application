@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +49,8 @@ public class RegisterActivity extends Activity {
     EditText editTextCountry;
     @BindView(R.id.textViewError)
     TextView textViewError;
+    @BindView(R.id.checkBoxIsOwner)
+    CheckBox chkBoxIsOwner;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,6 +77,7 @@ public class RegisterActivity extends Activity {
         String userCity = editTextCity.getText().toString();
         String userPostalCode = editTextPostalCode.getText().toString();
         String userCountry = editTextCountry.getText().toString();
+        boolean isOwner = chkBoxIsOwner.isChecked();
 
         JSONObject requestJsonObject = new JSONObject();
 
@@ -83,6 +87,7 @@ public class RegisterActivity extends Activity {
             requestJsonObject.put("name", userName);
             requestJsonObject.put("email", userEmail);
             requestJsonObject.put("password", userPassword);
+            requestJsonObject.put("isOwner", isOwner);
 
             JSONObject addressParam = new JSONObject();
 

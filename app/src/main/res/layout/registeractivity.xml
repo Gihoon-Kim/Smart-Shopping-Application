@@ -86,6 +86,12 @@
         android:layout_marginTop="30dp"
         android:textColor="@color/colorRed" />
 
+    <CheckBox
+        android:id="@+id/checkBoxIsOwner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/are_you_an_owner" />
+
     <Button
         android:id="@+id/buttonRegister"
         android:layout_width="wrap_content"

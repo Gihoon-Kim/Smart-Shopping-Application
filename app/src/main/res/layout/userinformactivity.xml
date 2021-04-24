@@ -19,7 +19,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="User Email : " />
+                android:text="@string/user_email" />
 
             <TextView
                 android:id="@+id/textViewUserEmail"
@@ -36,7 +36,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="User Name : " />
+                android:text="@string/user_name" />
 
             <TextView
                 android:id="@+id/textViewUserName"
@@ -54,7 +54,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="User Address : " />
+                android:text="@string/user_address" />
 
             <TextView
                 android:id="@+id/textViewUserAddress"
