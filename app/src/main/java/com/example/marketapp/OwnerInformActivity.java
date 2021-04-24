@@ -1,8 +1,5 @@
 package com.example.marketapp;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +9,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -28,31 +27,31 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class UserInformActivity extends Activity {
+public class OwnerInformActivity extends AppCompatActivity {
 
-    private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users/profile";
-    private static final String TAG = "UserInformActivity";
+    private static final String PROFILE_BASE_URL = "https://sundaland.herokuapp.com/api/users/profile";
     private static final String SERVER_MESSAGE = "serverMessage";
+    private static final String TAG = "OwnerInformActivity";
 
-    String serverMessage = "";
+    String serverMessage;
     static RequestQueue requestQueue;
 
-    @BindView(R.id.textViewUserEmail)
-    TextView tvUserEmail;
-    @BindView(R.id.textViewUserName)
-    TextView tvUserName;
-    @BindView(R.id.textViewUserAddress)
-    TextView tvUserAddress;
+    @BindView(R.id.tvOwnerEmail)
+    TextView tvOwnerEmail;
+    @BindView(R.id.tvOwnerName)
+    TextView tvOwnerName;
+    @BindView(R.id.tvOwnerAddress)
+    TextView tvOwnerAddress;
 
-    String userAddress;
-    String userCity;
-    String userPostalCode;
-    String userCountry;
+    String ownerAddress;
+    String ownerCity;
+    String ownerPostalCode;
+    String ownerCountry;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.userinformactivity);
+        setContentView(R.layout.ownerinformactivity);
 
         ButterKnife.bind(this);
 
@@ -64,17 +63,9 @@ public class UserInformActivity extends Activity {
         try {
 
             jsonObject = new JSONObject(serverMessage);
-            tvUserEmail.setText(jsonObject.getString("email"));
-            tvUserName.setText(jsonObject.getString("name"));
-            Log.d(TAG, jsonObject.getJSONObject("userAddress").getString("address")
-                    .concat(" ")
-                    .concat(jsonObject.getJSONObject("userAddress").getString("city"))
-                    .concat(" ")
-                    .concat(jsonObject.getJSONObject("userAddress").getString("postalCode"))
-                    .concat(" ")
-                    .concat(jsonObject.getJSONObject("userAddress").getString("country"))
-            );
-            tvUserAddress.setText(jsonObject.getJSONObject("userAddress").getString("address")
+            tvOwnerEmail.setText(jsonObject.getString("email"));
+            tvOwnerName.setText(jsonObject.getString("name"));
+            tvOwnerAddress.setText(jsonObject.getJSONObject("userAddress").getString("address")
                     .concat(" ")
                     .concat(jsonObject.getJSONObject("userAddress").getString("city"))
                     .concat(" ")
@@ -88,21 +79,21 @@ public class UserInformActivity extends Activity {
         }
     }
 
-    @OnClick(R.id.buttonUpdate)
-    public void onUpdateButtonClicked() {
-
-        newProfileDialog();
-    }
-
     @OnClick(R.id.buttonBack)
     public void onButtonBackClicked() {
 
         finish();
     }
 
+    @OnClick(R.id.buttonUpdate)
+    public void onUpdateButtonClicked() {
+
+        newProfileDialog();
+    }
+
     private void newProfileDialog() {
 
-        @SuppressLint("InflateParams") View dialogView = getLayoutInflater().inflate(R.layout.addressupdatedialog, null);
+        View dialogView = getLayoutInflater().inflate(R.layout.addressupdatedialog, null);
         EditText etAddress = dialogView.findViewById(R.id.editTextAddress);
         EditText etCity = dialogView.findViewById(R.id.editTextCity);
         EditText etPostalCode = dialogView.findViewById(R.id.editTextPostalCode);
@@ -113,10 +104,10 @@ public class UserInformActivity extends Activity {
 
         builder.setPositiveButton("OK", (dialog, which) -> {
 
-            userAddress = etAddress.getText().toString();
-            userCity = etCity.getText().toString();
-            userPostalCode = etPostalCode.getText().toString();
-            userCountry = etCountry.getText().toString();
+            ownerAddress = etAddress.getText().toString();
+            ownerCity = etCity.getText().toString();
+            ownerPostalCode = etPostalCode.getText().toString();
+            ownerCountry = etCountry.getText().toString();
 
             UpdateProfile();
         });
@@ -127,10 +118,10 @@ public class UserInformActivity extends Activity {
         alertDialog.show();
     }
 
-    public void UpdateProfile() {
+    private void UpdateProfile() {
 
         Intent tokenIntent = getIntent();
-        String userToken = tokenIntent.getStringExtra("token");
+        String ownerToken = tokenIntent.getStringExtra("token");
 
         JSONObject requestJSONObject = new JSONObject();
 
@@ -138,22 +129,23 @@ public class UserInformActivity extends Activity {
 
             JSONObject addressParam = new JSONObject();
 
-            Log.d(TAG, "address = " + userAddress + "\n" + "city = " + userCity + "\n" + "postalCode = " + userPostalCode + "\n" + "Country = " + userCountry);
-            addressParam.put("address", userAddress);
-            addressParam.put("city", userCity);
-            addressParam.put("postalCode", userPostalCode);
-            addressParam.put("country", userCountry);
+            Log.d(TAG, "address = " + ownerAddress + "\n" + "city = " + ownerCity + "\n" + "postalCode = " + ownerPostalCode + "\n" + "Country = " + ownerCountry);
+            addressParam.put("address", ownerAddress);
+            addressParam.put("city", ownerCity);
+            addressParam.put("postalCode", ownerPostalCode);
+            addressParam.put("country", ownerCountry);
 
             requestJSONObject.put("userAddress", addressParam);
         } catch (JSONException e) {
 
             e.printStackTrace();
         }
+
         requestQueue = Volley.newRequestQueue(getApplicationContext());
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.PUT,
-                BASE_URL,
+                PROFILE_BASE_URL,
                 requestJSONObject,
                 response -> {
 
@@ -162,6 +154,9 @@ public class UserInformActivity extends Activity {
                     try {
 
                         dataJSONObject = new JSONObject(String.valueOf(response));
+                        OwnerMainActivity.ownerToken = dataJSONObject.getString("token");
+
+                        Log.d(TAG, "new Token " + OwnerMainActivity.ownerToken);
                     } catch (JSONException e) {
 
                         e.printStackTrace();
@@ -171,12 +166,12 @@ public class UserInformActivity extends Activity {
 
                         assert dataJSONObject != null;
                         Log.d(TAG, dataJSONObject.getJSONObject("userAddress").getString("address"));
-                        tvUserAddress.setText(
-                                        dataJSONObject.getJSONObject("userAddress").getString("address").concat(" ") +
-                                        dataJSONObject.getJSONObject("userAddress").getString("city").concat(" " ) +
+                        tvOwnerAddress.setText(
+                                dataJSONObject.getJSONObject("userAddress").getString("address").concat(" ") +
+                                        dataJSONObject.getJSONObject("userAddress").getString("city").concat(" ") +
                                         dataJSONObject.getJSONObject("userAddress").getString("postalCode").concat(" ") +
                                         dataJSONObject.getJSONObject("userAddress").getString("country").concat(" ")
-                                );
+                        );
                     } catch (JSONException e) {
 
                         e.printStackTrace();
@@ -187,13 +182,14 @@ public class UserInformActivity extends Activity {
             public Map<String, String> getHeaders() {
 
                 HashMap<String, String> params = new HashMap<>();
-                Log.d(TAG, "getParams token = " + userToken);
-                assert userToken != null;
-                params.put("Authorization", "Bearer ".concat(userToken));
+                Log.d(TAG, "getParams token = " + ownerToken);
+                assert ownerToken != null;
+                params.put("Authorization", "Bearer ".concat(ownerToken));
                 return params;
             }
         };
 
         requestQueue.add(request);
+
     }
 }

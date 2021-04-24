@@ -19,10 +19,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/user_email" />
+                android:text="User Email : " />
 
             <TextView
-                android:id="@+id/textViewUserEmail"
+                android:id="@+id/tvOwnerEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
@@ -36,10 +36,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/user_name" />
+                android:text="@string/owner_name" />
 
             <TextView
-                android:id="@+id/textViewUserName"
+                android:id="@+id/tvOwnerName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
@@ -54,10 +54,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/user_address" />
+                android:text="@string/owner_address" />
 
             <TextView
-                android:id="@+id/textViewUserAddress"
+                android:id="@+id/tvOwnerAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>

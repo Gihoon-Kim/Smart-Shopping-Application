@@ -11,7 +11,8 @@
     <string name="login_failure">Login Failure</string>
     <string name="regist_failure">Registration Failure</string>
     <string name="hello">Hello</string>
-    <string name="view_store_list">View Store List</string>
+    <string name="view_all_store_list">View All Store List</string>
+    <string name="view_subscribed_store_list">View Subscribed Store List</string>
     <string name="user_inform">user Inform</string>
     <string name="menu">menu</string>
     <string name="address">Address</string>
@@ -23,4 +24,14 @@
     <string name="textView_user_address">User Address :</string>
     <string name="update_profile">Update profile</string>
     <string name="back_to_main">Back to Main</string>
+    <string name="are_you_an_owner">Are you an owner?</string>
+    <string name="view_my_store">View My Store</string>
+    <string name="owner_inform">Owner Information</string>
+    <string name="user_email">User Email :</string>
+    <string name="user_name">User Name :</string>
+    <string name="user_address">User Address :</string>
+    <string name="owner_name">Owner Name :</string>
+    <string name="owner_address">Owner Address :</string>
+    <string name="add_new_store">Add New Store</string>
+    <string name="province">Province</string>
 </resources>

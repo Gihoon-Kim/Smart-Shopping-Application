@@ -24,6 +24,8 @@
         <activity android:name=".RegisterActivity" />
         <activity android:name=".UserMainActivity" />
         <activity android:name=".UserInformActivity" />
+        <activity android:name=".OwnerMainActivity" />
+        <activity android:name=".OwnerInformActivity"/>
     </application>
 
 </manifest>
