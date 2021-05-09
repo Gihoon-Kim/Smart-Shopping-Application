@@ -40,6 +40,7 @@ public class LoginActivity extends Activity {
     private static final String LOGIN_ERROR = "Error";
     private static final String LOGIN_SUCCESS = "Login Success";
     private static final String SERVER_MESSAGE = "serverMessage";
+
     static RequestQueue requestQueue;
 
     @BindView(R.id.editTextEmail)
@@ -107,17 +108,25 @@ public class LoginActivity extends Activity {
 
                     if (responseData.equals(response.toString())) {
 
+                        Intent intent;
                         if (isOwner) {
 
-                            Intent intent = new Intent(getApplicationContext(), OwnerMainActivity.class);
-                            intent.putExtra(SERVER_MESSAGE, responseData);
-                            startActivity(intent);
+                            intent = new Intent(getApplicationContext(), OwnerMainActivity.class);
                         } else {
 
-                            Intent intent = new Intent(getApplicationContext(), UserMainActivity.class);
-                            intent.putExtra(SERVER_MESSAGE, responseData);
-                            startActivity(intent);
+                            intent = new Intent(getApplicationContext(), UserMainActivity.class);
+                            try {
+
+                                User.getInstance().setUserName(response.getString("name"));
+                                User.getInstance().setUserName(response.getString("token"));
+                                Log.d(TAG, "SingleTone Pattern User Name = " + User.getInstance().getUserName());
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
                         }
+
+                        intent.putExtra(SERVER_MESSAGE, responseData);
+                        startActivity(intent);
                     } else {
 
                         textViewError.setText(R.string.login_failure);

@@ -1,8 +1,10 @@
 package com.example.marketapp;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -10,10 +12,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> {
+public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> implements OnStoreItemClickListener {
+
+    private static final String TAG = "RecyclerAdapter";
 
     // List to input in adapter
-    private ArrayList<storeData> listData = new ArrayList<storeData>();
+    private ArrayList<StoreData> listData = new ArrayList<StoreData>();
+    OnStoreItemClickListener listener;
 
     @NonNull
     @Override
@@ -39,10 +44,33 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
         return listData.size();
     }
 
-    void addItem(storeData data) {
+    void addItem(StoreData data) {
 
         // adding item at outside
         listData.add(data);
+    }
+
+    void deleteAllItems() {
+
+        listData.clear();
+    }
+
+    @Override
+    public void onItemClick(ItemViewHolder holder, View view, int position) {
+
+        if (listener != null) {
+
+            listener.onItemClick(holder, view, position);
+        }
+    }
+
+    public void setOnItemClickListener(OnStoreItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    public StoreData getItem(int position) {
+
+        return listData.get(position);
     }
 
     // View Holder
@@ -51,15 +79,29 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
 
         private TextView storeName;
         private TextView storeAddress;
+        private CheckBox isSubscribed;
 
         ItemViewHolder(@NonNull View itemView) {
             super(itemView);
 
             storeName = itemView.findViewById(R.id.storeName);
             storeAddress = itemView.findViewById(R.id.storeAddress);
+            isSubscribed = itemView.findViewById(R.id.isSubscribed);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    int pos = getAdapterPosition();
+                    if (listener != null) {
+
+                        listener.onItemClick(ItemViewHolder.this, v, pos);
+                    }
+                }
+            });
         }
 
-        void onBind(storeData data) {
+        void onBind(StoreData data) {
 
             storeName.setText(data.getStoreName());
             storeAddress.setText(data.getStoreAddress());

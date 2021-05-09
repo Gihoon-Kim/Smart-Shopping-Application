@@ -1,9 +1,14 @@
 package com.example.marketapp;
 
-public class storeData {
+public class StoreData {
 
+    private String storeID;
     private String storeName;
     private String storeAddress;
+
+    public String getStoreID() {
+        return storeID;
+    }
 
     public String getStoreName() {
 
@@ -13,6 +18,10 @@ public class storeData {
     public String getStoreAddress() {
 
         return storeAddress;
+    }
+
+    public void setStoreID(String storeID) {
+        this.storeID = storeID;
     }
 
     public void setStoreName(String storeName) {
