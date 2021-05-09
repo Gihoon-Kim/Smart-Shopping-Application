@@ -1,14 +1,16 @@
 package com.example.marketapp;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,12 +39,14 @@ public class UserMainActivity extends Activity {
 
     private static final String PROFILE_BASE_URL = "https://sundaland.herokuapp.com/api/users/profile";
     private static final String ALL_STORE_BASE_URL = "https://sundaland.herokuapp.com/api/stores/all";
+    private static final String MY_STORE_BASE_URL = "https://sundaland.herokuapp.com/api/stores";
     private static final String SERVER_MESSAGE = "serverMessage";
     private static final String TAG = "UserMainActivity";
 
     String serverMessage = "";
     static RequestQueue requestQueue;
-    private RecyclerAdapter adapter;
+    private final RecyclerAdapter adapter = new RecyclerAdapter();
+    static String userToken;
 
     @BindView(R.id.buttonViewAllStoreList)
     Button buttonViewAllStoreList;
@@ -50,7 +54,7 @@ public class UserMainActivity extends Activity {
     ImageView imageViewMenu;
     @BindView(R.id.textViewUserName)
     TextView textViewUserName;
-
+    
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,19 +67,34 @@ public class UserMainActivity extends Activity {
         serverMessage = dataIntent.getStringExtra(SERVER_MESSAGE);
 
         Log.i(TAG, "Server Message = " + serverMessage);
-
+        JSONObject jsonObject = null;
         try {
 
             // get user name
-            JSONObject jsonObject = new JSONObject(serverMessage);
+            jsonObject = new JSONObject(serverMessage);
             textViewUserName.setText(jsonObject.getString("name"));
+            userToken = jsonObject.getString("token");
+            User.getInstance().setUserToken(userToken);
         } catch (JSONException e) {
 
             e.printStackTrace();
         }
 
+        adapter.setOnItemClickListener((holder, view, position) -> {
+
+            StoreData storeData = adapter.getItem(position);
+            Log.d(TAG, "Store Data. getStoreName = " + storeData.getStoreName());
+            Toast.makeText(getApplicationContext(), storeData.getStoreName(), Toast.LENGTH_LONG).show();
+            Intent intent = new Intent(UserMainActivity.this, UserStoreProductActivity.class);
+            intent.putExtra("storeID", storeData.getStoreID());
+            intent.putExtra("storeName", storeData.getStoreName());
+            intent.putExtra("storeAddress", storeData.getStoreAddress());
+            intent.putExtra("userToken", userToken);
+            startActivity(intent);
+        });
     }
 
+    @SuppressLint("NonConstantResourceId")
     @OnClick(R.id.imageViewMenu)
     public void onMenuClicked() {
 
@@ -97,47 +116,42 @@ public class UserMainActivity extends Activity {
         popupMenu.show();
     }
 
+    @SuppressLint("NonConstantResourceId")
     @OnClick(R.id.buttonViewAllStoreList)
     public void onViewAllStoreListClicked() {
 
-        RequestAllStores();
+        CallStoreList(ALL_STORE_BASE_URL);
     }
 
-    private void RequestAllStores() {
+    @SuppressLint("NonConstantResourceId")
+    @OnClick(R.id.buttonViewMyStoreList)
+    public void onViewMyStoreListClicked() {
 
-        String userToken;
-        JSONObject jsonObject;
-        try {
+        CallStoreList(MY_STORE_BASE_URL);
+    }
 
-            Log.d(TAG, serverMessage);
-            jsonObject = new JSONObject(serverMessage);
-            userToken = jsonObject.getString("token");
-        } catch (JSONException e) {
-
-            userToken = "Error";
-            e.printStackTrace();
-        }
-
+    private void CallStoreList(String url) {
         Log.d(TAG, "Token = " + userToken);
 
         requestQueue = Volley.newRequestQueue(getApplicationContext());
-        String finalUserToken = userToken;
 
+        adapter.deleteAllItems();
         StringRequest request = new StringRequest(
                 Request.Method.GET,
-                ALL_STORE_BASE_URL,
+                url,
                 response -> {
 
                     Log.d(TAG, "Response = " + response);
-                    // TODO : Put the response data into ListView
 
                     RecyclerView recyclerView = findViewById(R.id.rvStoreList);
 
                     LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
                     recyclerView.setLayoutManager(linearLayoutManager);
 
-                    adapter = new RecyclerAdapter();
                     recyclerView.setAdapter(adapter);
+
+                    Intent intent = new Intent(UserMainActivity.this, RecyclerAdapter.class);
+                    intent.putExtra("token", userToken);
 
                     try {
                         JSONArray jsonArray = new JSONArray(response);
@@ -152,7 +166,8 @@ public class UserMainActivity extends Activity {
                                             concat(storeJSONObject.getString("city").concat(", ").
                                                     concat(storeJSONObject.getString("province").concat(", ").
                                                             concat(storeJSONObject.getString("country")))));
-                            storeData data = new storeData();
+                            StoreData data = new StoreData();
+                            data.setStoreID(storeJSONObject.getString("_id"));
                             data.setStoreName(storeJSONObject.getString("name"));
                             data.setStoreAddress(storeJSONObject.getString("streetAddress").concat(", ").
                                     concat(storeJSONObject.getString("city").concat(", ").
@@ -171,7 +186,7 @@ public class UserMainActivity extends Activity {
             public Map<String, String> getHeaders() {
 
                 HashMap<String, String> params = new HashMap<>();
-                params.put("Authorization", "Bearer ".concat(finalUserToken));
+                params.put("Authorization", "Bearer ".concat(userToken));
 
                 return params;
             }
@@ -182,24 +197,9 @@ public class UserMainActivity extends Activity {
 
     private void RequestProfile() {
 
-        String userToken;
-        JSONObject jsonObject;
-        try {
-
-            Log.d(TAG, serverMessage);
-            jsonObject = new JSONObject(serverMessage);
-            userToken = jsonObject.getString("token");
-        } catch (JSONException e) {
-
-            userToken = "Error";
-            e.printStackTrace();
-        }
-
         Log.d(TAG, "Token = " + userToken);
 
         requestQueue = Volley.newRequestQueue(getApplicationContext());
-        String finalUserToken = userToken;
-
         StringRequest request = new StringRequest(
                 Request.Method.GET,
                 PROFILE_BASE_URL,
@@ -208,7 +208,7 @@ public class UserMainActivity extends Activity {
                     Log.d(TAG, "Response = " + response);
                     Intent intent = new Intent(getApplicationContext(), UserInformActivity.class);
                     intent.putExtra(SERVER_MESSAGE, response);
-                    intent.putExtra("token", finalUserToken);
+                    intent.putExtra("token", userToken);
                     startActivity(intent);
                 },
                 error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show()) {
@@ -216,13 +216,16 @@ public class UserMainActivity extends Activity {
             public Map<String, String> getHeaders() {
 
                 HashMap<String, String> params = new HashMap<>();
-                params.put("Authorization", "Bearer ".concat(finalUserToken));
+                Log.d(TAG, "getHeaders Token = " + userToken);
+                params.put("Authorization", "Bearer ".concat(userToken));
 
                 return params;
             }
         };
 
         requestQueue.add(request);
+
+        userToken = User.getInstance().getUserToken();
     }
 }
 

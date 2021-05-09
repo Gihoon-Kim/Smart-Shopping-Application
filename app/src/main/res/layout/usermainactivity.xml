@@ -42,7 +42,7 @@
                 android:text="@string/view_all_store_list" />
 
             <Button
-                android:id="@+id/buttonViewSomeStoreList"
+                android:id="@+id/buttonViewMyStoreList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

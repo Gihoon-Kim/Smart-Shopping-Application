@@ -177,6 +177,7 @@ public class UserInformActivity extends Activity {
                                         dataJSONObject.getJSONObject("userAddress").getString("postalCode").concat(" ") +
                                         dataJSONObject.getJSONObject("userAddress").getString("country").concat(" ")
                                 );
+                        User.getInstance().setUserToken(response.getString("token"));
                     } catch (JSONException e) {
 
                         e.printStackTrace();
