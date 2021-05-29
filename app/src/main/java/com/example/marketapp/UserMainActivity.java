@@ -28,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +48,7 @@ public class UserMainActivity extends Activity {
     static RequestQueue requestQueue;
     private final RecyclerAdapter adapter = new RecyclerAdapter();
     static String userToken;
+    ArrayList<String> userSubscribedStores = new ArrayList<>();
 
     @BindView(R.id.buttonViewAllStoreList)
     Button buttonViewAllStoreList;
@@ -80,6 +82,8 @@ public class UserMainActivity extends Activity {
             e.printStackTrace();
         }
 
+        CallUserSubscribedStores();
+
         adapter.setOnItemClickListener((holder, view, position) -> {
 
             StoreData storeData = adapter.getItem(position);
@@ -90,8 +94,44 @@ public class UserMainActivity extends Activity {
             intent.putExtra("storeName", storeData.getStoreName());
             intent.putExtra("storeAddress", storeData.getStoreAddress());
             intent.putExtra("userToken", userToken);
+            intent.putStringArrayListExtra("userSubscribedStoresList", userSubscribedStores);
             startActivity(intent);
         });
+    }
+
+    public void CallUserSubscribedStores() {
+
+        requestQueue = Volley.newRequestQueue(getApplicationContext());
+
+        adapter.deleteAllItems();
+        StringRequest request = new StringRequest(
+                Request.Method.GET,
+                MY_STORE_BASE_URL,
+                response -> {
+
+                    Log.d(TAG, "Response = " + response);
+                    try {
+                        JSONArray jsonArray = new JSONArray(response);
+                        for (int i = 0; i < jsonArray.length(); i++) {
+
+                            userSubscribedStores.add(jsonArray.getJSONObject(i).toString());
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show()) {
+
+            public Map<String, String> getHeaders() {
+
+                HashMap<String, String> params = new HashMap<>();
+                params.put("Authorization", "Bearer ".concat(userToken));
+
+                return params;
+            }
+        };
+
+        requestQueue.add(request);
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -131,6 +171,7 @@ public class UserMainActivity extends Activity {
     }
 
     private void CallStoreList(String url) {
+
         Log.d(TAG, "Token = " + userToken);
 
         requestQueue = Volley.newRequestQueue(getApplicationContext());

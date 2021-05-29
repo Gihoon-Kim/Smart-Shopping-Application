@@ -79,14 +79,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
 
         private TextView storeName;
         private TextView storeAddress;
-        private CheckBox isSubscribed;
 
         ItemViewHolder(@NonNull View itemView) {
             super(itemView);
 
             storeName = itemView.findViewById(R.id.storeName);
             storeAddress = itemView.findViewById(R.id.storeAddress);
-            isSubscribed = itemView.findViewById(R.id.isSubscribed);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

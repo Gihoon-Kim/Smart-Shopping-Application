@@ -28,6 +28,7 @@
         <activity android:name=".OwnerMainActivity" />
         <activity android:name=".OwnerInformActivity"/>
         <activity android:name=".UserStoreProductActivity"/>
+        <activity android:name=".OwnerStoreProductActivity"/>
     </application>
 
 </manifest>

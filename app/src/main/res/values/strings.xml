@@ -34,4 +34,8 @@
     <string name="owner_address">Owner Address :</string>
     <string name="add_new_store">Add New Store</string>
     <string name="province">Province</string>
+    <string name="update_store_info">Update Store Info</string>
+    <string name="view_products">View Products</string>
+    <string name="delete_store">Delete Store</string>
+    <string name="store_name">Store Name</string>
 </resources>
