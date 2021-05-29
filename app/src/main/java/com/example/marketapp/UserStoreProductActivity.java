@@ -14,15 +14,12 @@ import androidx.annotation.Nullable;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,8 +45,6 @@ public class UserStoreProductActivity extends Activity {
     boolean isSubscribed = false;
     String userToken;
     String storeID;
-    ArrayList<String> userSubscribedStoresString;
-    ArrayList<JSONObject> userSubscribedStoresJSON = new ArrayList<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -65,47 +60,13 @@ public class UserStoreProductActivity extends Activity {
         String storeAddress = intent.getStringExtra("storeAddress");
         userToken = intent.getStringExtra("userToken");
         storeID = intent.getStringExtra("storeID");
-        userSubscribedStoresString = intent.getStringArrayListExtra("userSubscribedStoresList");
-
-        for (int i = 0; i < userSubscribedStoresString.size(); i++) {
-
-            try {
-
-                JSONObject jsonObject = new JSONObject(userSubscribedStoresString.get(i));
-                userSubscribedStoresJSON.add(jsonObject);
-            } catch (JSONException e) {
-
-                e.printStackTrace();
-            }
-        }
 
         Log.d(TAG, "Store ID = " + storeID);
         Log.d(TAG, "Store Name = " + storeName);
         Log.d(TAG, "Store Address = " + storeAddress);
         Log.d(TAG, "User Token = " + userToken);
-
-        for (int i = 0; i < userSubscribedStoresJSON.size(); i++) {
-
-            Log.d(TAG, "Subscribed Stores = " + userSubscribedStoresJSON.get(i).toString() + "\n");
-        }
-
         tvStoreName.setText(storeName);
         tvStoreAddress.setText(storeAddress);
-
-        for (int i = 0; i < userSubscribedStoresJSON.size(); i++) {
-
-            try {
-
-                if (userSubscribedStoresJSON.get(i).getString("_id").equals(storeID)) {
-
-                    Log.d(TAG, "The store was already Subscribed");
-                    ivSubscribe.setImageResource(R.drawable.ic_baseline_star_24);
-                    isSubscribed = true;
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     @OnClick(R.id.ivSubscribe)
