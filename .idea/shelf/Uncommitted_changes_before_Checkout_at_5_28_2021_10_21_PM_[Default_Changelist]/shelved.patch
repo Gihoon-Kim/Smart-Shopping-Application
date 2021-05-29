@@ -1,0 +1,271 @@
+Index: app/src/main/java/com/example/marketapp/RecyclerAdapter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.marketapp;\r\n\r\nimport android.view.LayoutInflater;\r\nimport android.view.View;\r\nimport android.view.ViewGroup;\r\nimport android.widget.TextView;\r\n\r\nimport androidx.annotation.NonNull;\r\nimport androidx.recyclerview.widget.RecyclerView;\r\n\r\nimport java.util.ArrayList;\r\n\r\npublic class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> {\r\n\r\n    // List to input in adapter\r\n    private ArrayList<storeData> listData = new ArrayList<storeData>();\r\n\r\n    @NonNull\r\n    @Override\r\n    public RecyclerAdapter.ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {\r\n\r\n        // Inflate item xml file through LayoutInflater\r\n        // return type is ViewHolder\r\n        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.storelistrecyclerview, parent, false);\r\n        return new ItemViewHolder(view);\r\n    }\r\n\r\n    @Override\r\n    public void onBindViewHolder(@NonNull ItemViewHolder holder, int position) {\r\n\r\n        // showing (binding) items\r\n        holder.onBind(listData.get(position));\r\n    }\r\n\r\n    @Override\r\n    public int getItemCount() {\r\n\r\n        // total number of RecyclerView\r\n        return listData.size();\r\n    }\r\n\r\n    void addItem(storeData data) {\r\n\r\n        // adding item at outside\r\n        listData.add(data);\r\n    }\r\n\r\n    // View Holder\r\n    // Setting subView\r\n    class ItemViewHolder extends RecyclerView.ViewHolder {\r\n\r\n        private TextView storeName;\r\n        private TextView storeAddress;\r\n\r\n        ItemViewHolder(@NonNull View itemView) {\r\n            super(itemView);\r\n\r\n            storeName = itemView.findViewById(R.id.storeName);\r\n            storeAddress = itemView.findViewById(R.id.storeAddress);\r\n        }\r\n\r\n        void onBind(storeData data) {\r\n\r\n            storeName.setText(data.getStoreName());\r\n            storeAddress.setText(data.getStoreAddress());\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/marketapp/RecyclerAdapter.java	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ app/src/main/java/com/example/marketapp/RecyclerAdapter.java	(date 1622254814085)
+@@ -1,8 +1,10 @@
+ package com.example.marketapp;
+ 
++import android.util.Log;
+ import android.view.LayoutInflater;
+ import android.view.View;
+ import android.view.ViewGroup;
++import android.widget.CheckBox;
+ import android.widget.TextView;
+ 
+ import androidx.annotation.NonNull;
+@@ -10,10 +12,13 @@
+ 
+ import java.util.ArrayList;
+ 
+-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> {
++public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> implements OnStoreItemClickListener {
++
++    private static final String TAG = "RecyclerAdapter";
+ 
+     // List to input in adapter
+-    private ArrayList<storeData> listData = new ArrayList<storeData>();
++    private ArrayList<StoreData> listData = new ArrayList<StoreData>();
++    OnStoreItemClickListener listener;
+ 
+     @NonNull
+     @Override
+@@ -39,27 +44,64 @@
+         return listData.size();
+     }
+ 
+-    void addItem(storeData data) {
++    void addItem(StoreData data) {
+ 
+         // adding item at outside
+         listData.add(data);
+     }
+ 
++    void deleteAllItems() {
++
++        listData.clear();
++    }
++
++    @Override
++    public void onItemClick(ItemViewHolder holder, View view, int position) {
++
++        if (listener != null) {
++
++            listener.onItemClick(holder, view, position);
++        }
++    }
++
++    public void setOnItemClickListener(OnStoreItemClickListener listener) {
++        this.listener = listener;
++    }
++
++    public StoreData getItem(int position) {
++
++        return listData.get(position);
++    }
++
+     // View Holder
+     // Setting subView
+     class ItemViewHolder extends RecyclerView.ViewHolder {
+ 
+         private TextView storeName;
+         private TextView storeAddress;
++        private CheckBox isSubscribed;
+ 
+         ItemViewHolder(@NonNull View itemView) {
+             super(itemView);
+ 
+             storeName = itemView.findViewById(R.id.storeName);
+             storeAddress = itemView.findViewById(R.id.storeAddress);
++            isSubscribed = itemView.findViewById(R.id.isSubscribed);
++
++            itemView.setOnClickListener(new View.OnClickListener() {
++                @Override
++                public void onClick(View v) {
++
++                    int pos = getAdapterPosition();
++                    if (listener != null) {
++
++                        listener.onItemClick(ItemViewHolder.this, v, pos);
++                    }
++                }
++            });
+         }
+ 
+-        void onBind(storeData data) {
++        void onBind(StoreData data) {
+ 
+             storeName.setText(data.getStoreName());
+             storeAddress.setText(data.getStoreAddress());
+Index: app/src/main/res/layout/storelistrecyclerview.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<LinearLayout\r\n    xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    android:orientation=\"vertical\"\r\n    android:layout_width=\"match_parent\"\r\n    android:layout_height=\"wrap_content\" >\r\n\r\n    <LinearLayout\r\n        android:layout_width=\"wrap_content\"\r\n        android:layout_height=\"wrap_content\"\r\n        android:orientation=\"vertical\" >\r\n\r\n        <TextView\r\n            android:id=\"@+id/storeName\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"example name\"\r\n            android:textSize=\"14sp\"\r\n            android:textStyle=\"bold\"/>\r\n\r\n        <TextView\r\n            android:id=\"@+id/storeAddress\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:text=\"example address\"\r\n            android:textSize=\"10sp\" />\r\n    </LinearLayout>\r\n\r\n</LinearLayout>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/storelistrecyclerview.xml	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ app/src/main/res/layout/storelistrecyclerview.xml	(date 1622254814096)
+@@ -3,27 +3,44 @@
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     android:orientation="vertical"
+     android:layout_width="match_parent"
+-    android:layout_height="wrap_content" >
++    android:layout_height="wrap_content"
++    android:layout_marginBottom="20dp"
++    android:background="#ffffff">
++
++    <LinearLayout
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:orientation="horizontal" >
+ 
+-    <LinearLayout
+-        android:layout_width="wrap_content"
+-        android:layout_height="wrap_content"
+-        android:orientation="vertical" >
+-
++        <LinearLayout
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:orientation="vertical" >
+         <TextView
+             android:id="@+id/storeName"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+-            android:text="example name"
+-            android:textSize="14sp"
++            android:textSize="20sp"
+             android:textStyle="bold"/>
+ 
+         <TextView
+             android:id="@+id/storeAddress"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+-            android:text="example address"
+-            android:textSize="10sp" />
++            android:layout_marginTop="10dp"
++            android:textSize="14sp" />
++        </LinearLayout>
++
++        <LinearLayout
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:gravity="end">
++
++        <CheckBox
++            android:id="@+id/isSubscribed"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content" />
++        </LinearLayout>
+     </LinearLayout>
+ 
+ </LinearLayout>
+\ No newline at end of file
+Index: app/src/main/java/com/example/marketapp/LoginActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.marketapp;\r\n\r\nimport android.app.Activity;\r\nimport android.content.Context;\r\nimport android.content.Intent;\r\nimport android.os.AsyncTask;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.widget.EditText;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport com.android.volley.Request;\r\nimport com.android.volley.RequestQueue;\r\nimport com.android.volley.toolbox.JsonObjectRequest;\r\nimport com.android.volley.toolbox.Volley;\r\n\r\nimport org.json.JSONException;\r\nimport org.json.JSONObject;\r\n\r\nimport java.io.BufferedReader;\r\nimport java.io.BufferedWriter;\r\nimport java.io.IOException;\r\nimport java.io.InputStream;\r\nimport java.io.InputStreamReader;\r\nimport java.io.OutputStream;\r\nimport java.io.OutputStreamWriter;\r\nimport java.net.HttpURLConnection;\r\nimport java.net.URL;\r\nimport java.util.Arrays;\r\n\r\nimport butterknife.BindView;\r\nimport butterknife.ButterKnife;\r\nimport butterknife.OnClick;\r\n\r\npublic class LoginActivity extends Activity {\r\n\r\n    private static final String TAG = \"LoginActivity\";\r\n    private static final String BASE_URL = \"https://sundaland.herokuapp.com/api/users/login\";\r\n    private static final String LOGIN_ERROR = \"Error\";\r\n    private static final String LOGIN_SUCCESS = \"Login Success\";\r\n    private static final String SERVER_MESSAGE = \"serverMessage\";\r\n    static RequestQueue requestQueue;\r\n\r\n    @BindView(R.id.editTextEmail)\r\n    EditText editTextEmail;\r\n    @BindView(R.id.editTextPassword)\r\n    EditText editTextPassword;\r\n    @BindView(R.id.textViewError)\r\n    TextView textViewError;\r\n\r\n    @Override\r\n    protected void onCreate(Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.loginactivity);\r\n\r\n        ButterKnife.bind(this);\r\n    }\r\n\r\n    @OnClick(R.id.buttonLogin)\r\n    public void onLoginButtonClicked() {\r\n\r\n        LoginRequest();\r\n    }\r\n\r\n    @OnClick(R.id.buttonRegister)\r\n    public void onRegisterButtonClicked() {\r\n\r\n        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);\r\n        startActivity(intent);\r\n    }\r\n\r\n    public void LoginRequest() {\r\n\r\n        String userEmail = editTextEmail.getText().toString();\r\n        String userPassword = editTextPassword.getText().toString();\r\n\r\n        JSONObject requestJsonObject = new JSONObject();\r\n        try {\r\n\r\n            requestJsonObject.put(\"email\", userEmail);\r\n            requestJsonObject.put(\"password\", userPassword);\r\n        } catch (JSONException e) {\r\n\r\n            e.printStackTrace();\r\n        }\r\n\r\n        requestQueue = Volley.newRequestQueue(getApplicationContext());\r\n\r\n        JsonObjectRequest request = new JsonObjectRequest(\r\n                Request.Method.POST,\r\n                BASE_URL,\r\n                requestJsonObject,\r\n                response -> {\r\n                    boolean isOwner = false;\r\n                    String responseData = response.toString();\r\n                    Log.d(TAG, \"response = \" + response);\r\n                    Log.d(TAG, \"responseData = \" + responseData);\r\n                    try {\r\n\r\n                        isOwner = response.getBoolean(\"isOwner\");\r\n                        Log.d(TAG, \"isOwner = \" + isOwner);\r\n                    } catch (JSONException e) {\r\n\r\n                        e.printStackTrace();\r\n                    }\r\n\r\n                    if (responseData.equals(response.toString())) {\r\n\r\n                        if (isOwner) {\r\n\r\n                            Intent intent = new Intent(getApplicationContext(), OwnerMainActivity.class);\r\n                            intent.putExtra(SERVER_MESSAGE, responseData);\r\n                            startActivity(intent);\r\n                        } else {\r\n\r\n                            Intent intent = new Intent(getApplicationContext(), UserMainActivity.class);\r\n                            intent.putExtra(SERVER_MESSAGE, responseData);\r\n                            startActivity(intent);\r\n                        }\r\n                    } else {\r\n\r\n                        textViewError.setText(R.string.login_failure);\r\n                        Toast.makeText(getApplicationContext(), LOGIN_SUCCESS, Toast.LENGTH_SHORT).show();\r\n                    }\r\n                },\r\n                error -> {\r\n\r\n                    textViewError.setText(R.string.login_failure);\r\n                    Toast.makeText(getApplicationContext(), LOGIN_ERROR, Toast.LENGTH_SHORT).show();\r\n                }\r\n        );\r\n\r\n        requestQueue.add(request);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/marketapp/LoginActivity.java	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ app/src/main/java/com/example/marketapp/LoginActivity.java	(date 1622254814081)
+@@ -40,6 +40,7 @@
+     private static final String LOGIN_ERROR = "Error";
+     private static final String LOGIN_SUCCESS = "Login Success";
+     private static final String SERVER_MESSAGE = "serverMessage";
++
+     static RequestQueue requestQueue;
+ 
+     @BindView(R.id.editTextEmail)
+@@ -107,17 +108,25 @@
+ 
+                     if (responseData.equals(response.toString())) {
+ 
++                        Intent intent;
+                         if (isOwner) {
+ 
+-                            Intent intent = new Intent(getApplicationContext(), OwnerMainActivity.class);
+-                            intent.putExtra(SERVER_MESSAGE, responseData);
+-                            startActivity(intent);
++                            intent = new Intent(getApplicationContext(), OwnerMainActivity.class);
+                         } else {
+ 
+-                            Intent intent = new Intent(getApplicationContext(), UserMainActivity.class);
+-                            intent.putExtra(SERVER_MESSAGE, responseData);
+-                            startActivity(intent);
+-                        }
++                            intent = new Intent(getApplicationContext(), UserMainActivity.class);
++                            try {
++
++                                User.getInstance().setUserName(response.getString("name"));
++                                User.getInstance().setUserName(response.getString("token"));
++                                Log.d(TAG, "SingleTone Pattern User Name = " + User.getInstance().getUserName());
++                            } catch (JSONException e) {
++                                e.printStackTrace();
++                            }
++                        }
++
++                        intent.putExtra(SERVER_MESSAGE, responseData);
++                        startActivity(intent);
+                     } else {
+ 
+                         textViewError.setText(R.string.login_failure);
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"EntryPointsManager\">\r\n    <list size=\"1\">\r\n      <item index=\"0\" class=\"java.lang.String\" itemvalue=\"butterknife.OnClick\" />\r\n    </list>\r\n  </component>\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_1_8\" project-jdk-name=\"1.8\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/misc.xml	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ .idea/misc.xml	(date 1622254814077)
+@@ -5,7 +5,7 @@
+       <item index="0" class="java.lang.String" itemvalue="butterknife.OnClick" />
+     </list>
+   </component>
+-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+     <output url="file://$PROJECT_DIR$/build/classes" />
+   </component>
+   <component name="ProjectType">
+Index: .idea/gradle.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"GradleSettings\">\r\n    <option name=\"linkedExternalProjectsSettings\">\r\n      <GradleProjectSettings>\r\n        <compositeConfiguration>\r\n          <compositeBuild compositeDefinitionSource=\"SCRIPT\" />\r\n        </compositeConfiguration>\r\n        <option name=\"distributionType\" value=\"DEFAULT_WRAPPED\" />\r\n        <option name=\"externalProjectPath\" value=\"$PROJECT_DIR$\" />\r\n        <option name=\"resolveModulePerSourceSet\" value=\"false\" />\r\n        <option name=\"testRunner\" value=\"PLATFORM\" />\r\n      </GradleProjectSettings>\r\n    </option>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/gradle.xml	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ .idea/gradle.xml	(date 1622254814075)
+@@ -1,15 +1,21 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
++  <component name="GradleMigrationSettings" migrationVersion="1" />
+   <component name="GradleSettings">
+     <option name="linkedExternalProjectsSettings">
+       <GradleProjectSettings>
+-        <compositeConfiguration>
+-          <compositeBuild compositeDefinitionSource="SCRIPT" />
+-        </compositeConfiguration>
++        <option name="delegatedBuild" value="false" />
++        <option name="testRunner" value="PLATFORM" />
+         <option name="distributionType" value="DEFAULT_WRAPPED" />
+         <option name="externalProjectPath" value="$PROJECT_DIR$" />
++        <option name="modules">
++          <set>
++            <option value="$PROJECT_DIR$" />
++            <option value="$PROJECT_DIR$/app" />
++          </set>
++        </option>
+         <option name="resolveModulePerSourceSet" value="false" />
+-        <option name="testRunner" value="PLATFORM" />
++        <option name="useQualifiedModuleNames" value="true" />
+       </GradleProjectSettings>
+     </option>
+   </component>

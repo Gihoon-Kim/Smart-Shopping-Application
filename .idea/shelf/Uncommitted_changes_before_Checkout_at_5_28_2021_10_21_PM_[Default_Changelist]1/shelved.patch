@@ -1,0 +1,678 @@
+Index: app/src/main/java/com/example/marketapp/UserMainActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.marketapp;\r\n\r\nimport android.app.Activity;\r\nimport android.content.Intent;\r\nimport android.os.AsyncTask;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.view.Menu;\r\nimport android.view.MenuInflater;\r\nimport android.widget.Button;\r\nimport android.widget.ImageView;\r\nimport android.widget.PopupMenu;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.annotation.Nullable;\r\nimport androidx.recyclerview.widget.LinearLayoutManager;\r\nimport androidx.recyclerview.widget.RecyclerView;\r\n\r\nimport com.android.volley.Request;\r\nimport com.android.volley.RequestQueue;\r\nimport com.android.volley.toolbox.StringRequest;\r\nimport com.android.volley.toolbox.Volley;\r\n\r\nimport org.json.JSONArray;\r\nimport org.json.JSONException;\r\nimport org.json.JSONObject;\r\n\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\n\r\nimport butterknife.BindView;\r\nimport butterknife.ButterKnife;\r\nimport butterknife.OnClick;\r\n\r\npublic class UserMainActivity extends Activity {\r\n\r\n    private static final String PROFILE_BASE_URL = \"https://sundaland.herokuapp.com/api/users/profile\";\r\n    private static final String ALL_STORE_BASE_URL = \"https://sundaland.herokuapp.com/api/stores/all\";\r\n    private static final String SERVER_MESSAGE = \"serverMessage\";\r\n    private static final String TAG = \"UserMainActivity\";\r\n\r\n    String serverMessage = \"\";\r\n    static RequestQueue requestQueue;\r\n    private RecyclerAdapter adapter;\r\n\r\n    @BindView(R.id.buttonViewAllStoreList)\r\n    Button buttonViewAllStoreList;\r\n    @BindView(R.id.imageViewMenu)\r\n    ImageView imageViewMenu;\r\n    @BindView(R.id.textViewUserName)\r\n    TextView textViewUserName;\r\n\r\n    @Override\r\n    protected void onCreate(@Nullable Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.usermainactivity);\r\n\r\n        ButterKnife.bind(this);\r\n\r\n        // Get data from LoginActivity\r\n        Intent dataIntent = getIntent();\r\n        serverMessage = dataIntent.getStringExtra(SERVER_MESSAGE);\r\n\r\n        Log.i(TAG, \"Server Message = \" + serverMessage);\r\n\r\n        try {\r\n\r\n            // get user name\r\n            JSONObject jsonObject = new JSONObject(serverMessage);\r\n            textViewUserName.setText(jsonObject.getString(\"name\"));\r\n        } catch (JSONException e) {\r\n\r\n            e.printStackTrace();\r\n        }\r\n\r\n    }\r\n\r\n    @OnClick(R.id.imageViewMenu)\r\n    public void onMenuClicked() {\r\n\r\n        PopupMenu popupMenu = new PopupMenu(this, imageViewMenu);\r\n        MenuInflater menuInflater = getMenuInflater();\r\n        Menu menu = popupMenu.getMenu();\r\n        menuInflater.inflate(R.menu.usermenu, menu);\r\n\r\n        popupMenu.setOnMenuItemClickListener(item -> {\r\n            switch (item.getItemId()) {\r\n\r\n                case R.id.userInform:\r\n\r\n                    RequestProfile();\r\n            }\r\n\r\n            return false;\r\n        });\r\n        popupMenu.show();\r\n    }\r\n\r\n    @OnClick(R.id.buttonViewAllStoreList)\r\n    public void onViewAllStoreListClicked() {\r\n\r\n        RequestAllStores();\r\n    }\r\n\r\n    private void RequestAllStores() {\r\n\r\n        String userToken;\r\n        JSONObject jsonObject;\r\n        try {\r\n\r\n            Log.d(TAG, serverMessage);\r\n            jsonObject = new JSONObject(serverMessage);\r\n            userToken = jsonObject.getString(\"token\");\r\n        } catch (JSONException e) {\r\n\r\n            userToken = \"Error\";\r\n            e.printStackTrace();\r\n        }\r\n\r\n        Log.d(TAG, \"Token = \" + userToken);\r\n\r\n        requestQueue = Volley.newRequestQueue(getApplicationContext());\r\n        String finalUserToken = userToken;\r\n\r\n        StringRequest request = new StringRequest(\r\n                Request.Method.GET,\r\n                ALL_STORE_BASE_URL,\r\n                response -> {\r\n\r\n                    Log.d(TAG, \"Response = \" + response);\r\n                    // TODO : Put the response data into ListView\r\n\r\n                    RecyclerView recyclerView = findViewById(R.id.rvStoreList);\r\n\r\n                    LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);\r\n                    recyclerView.setLayoutManager(linearLayoutManager);\r\n\r\n                    adapter = new RecyclerAdapter();\r\n                    recyclerView.setAdapter(adapter);\r\n\r\n                    try {\r\n                        JSONArray jsonArray = new JSONArray(response);\r\n                        for (int i = 0; i < jsonArray.length(); i++) {\r\n\r\n                            Log.d(TAG, jsonArray.getString(i));\r\n                            JSONObject storeJSONObject;\r\n                            storeJSONObject = jsonArray.getJSONObject(i);\r\n                            Log.d(TAG, storeJSONObject.getString(\"name\"));\r\n                            Log.d(TAG, \"store Address = \" +\r\n                                    storeJSONObject.getString(\"streetAddress\").concat(\", \").\r\n                                            concat(storeJSONObject.getString(\"city\").concat(\", \").\r\n                                                    concat(storeJSONObject.getString(\"province\").concat(\", \").\r\n                                                            concat(storeJSONObject.getString(\"country\")))));\r\n                            storeData data = new storeData();\r\n                            data.setStoreName(storeJSONObject.getString(\"name\"));\r\n                            data.setStoreAddress(storeJSONObject.getString(\"streetAddress\").concat(\", \").\r\n                                    concat(storeJSONObject.getString(\"city\").concat(\", \").\r\n                                            concat(storeJSONObject.getString(\"province\").concat(\", \").\r\n                                                    concat(storeJSONObject.getString(\"country\")))));\r\n\r\n                            adapter.addItem(data);\r\n                        }\r\n                        adapter.notifyDataSetChanged();\r\n                    } catch (JSONException e) {\r\n                        e.printStackTrace();\r\n                    }\r\n                },\r\n                error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show()) {\r\n\r\n            public Map<String, String> getHeaders() {\r\n\r\n                HashMap<String, String> params = new HashMap<>();\r\n                params.put(\"Authorization\", \"Bearer \".concat(finalUserToken));\r\n\r\n                return params;\r\n            }\r\n        };\r\n\r\n        requestQueue.add(request);\r\n    }\r\n\r\n    private void RequestProfile() {\r\n\r\n        String userToken;\r\n        JSONObject jsonObject;\r\n        try {\r\n\r\n            Log.d(TAG, serverMessage);\r\n            jsonObject = new JSONObject(serverMessage);\r\n            userToken = jsonObject.getString(\"token\");\r\n        } catch (JSONException e) {\r\n\r\n            userToken = \"Error\";\r\n            e.printStackTrace();\r\n        }\r\n\r\n        Log.d(TAG, \"Token = \" + userToken);\r\n\r\n        requestQueue = Volley.newRequestQueue(getApplicationContext());\r\n        String finalUserToken = userToken;\r\n\r\n        StringRequest request = new StringRequest(\r\n                Request.Method.GET,\r\n                PROFILE_BASE_URL,\r\n                response -> {\r\n\r\n                    Log.d(TAG, \"Response = \" + response);\r\n                    Intent intent = new Intent(getApplicationContext(), UserInformActivity.class);\r\n                    intent.putExtra(SERVER_MESSAGE, response);\r\n                    intent.putExtra(\"token\", finalUserToken);\r\n                    startActivity(intent);\r\n                },\r\n                error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show()) {\r\n\r\n            public Map<String, String> getHeaders() {\r\n\r\n                HashMap<String, String> params = new HashMap<>();\r\n                params.put(\"Authorization\", \"Bearer \".concat(finalUserToken));\r\n\r\n                return params;\r\n            }\r\n        };\r\n\r\n        requestQueue.add(request);\r\n    }\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/marketapp/UserMainActivity.java	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ app/src/main/java/com/example/marketapp/UserMainActivity.java	(date 1622254814090)
+@@ -1,14 +1,16 @@
+ package com.example.marketapp;
+ 
++import android.annotation.SuppressLint;
+ import android.app.Activity;
+ import android.content.Intent;
+-import android.os.AsyncTask;
+ import android.os.Bundle;
+ import android.util.Log;
+ import android.view.Menu;
+ import android.view.MenuInflater;
++import android.view.View;
+ import android.widget.Button;
+ import android.widget.ImageView;
++import android.widget.LinearLayout;
+ import android.widget.PopupMenu;
+ import android.widget.TextView;
+ import android.widget.Toast;
+@@ -37,12 +39,14 @@
+ 
+     private static final String PROFILE_BASE_URL = "https://sundaland.herokuapp.com/api/users/profile";
+     private static final String ALL_STORE_BASE_URL = "https://sundaland.herokuapp.com/api/stores/all";
++    private static final String MY_STORE_BASE_URL = "https://sundaland.herokuapp.com/api/stores";
+     private static final String SERVER_MESSAGE = "serverMessage";
+     private static final String TAG = "UserMainActivity";
+ 
+     String serverMessage = "";
+     static RequestQueue requestQueue;
+-    private RecyclerAdapter adapter;
++    private final RecyclerAdapter adapter = new RecyclerAdapter();
++    static String userToken;
+ 
+     @BindView(R.id.buttonViewAllStoreList)
+     Button buttonViewAllStoreList;
+@@ -50,7 +54,7 @@
+     ImageView imageViewMenu;
+     @BindView(R.id.textViewUserName)
+     TextView textViewUserName;
+-
++    
+     @Override
+     protected void onCreate(@Nullable Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+@@ -63,19 +67,34 @@
+         serverMessage = dataIntent.getStringExtra(SERVER_MESSAGE);
+ 
+         Log.i(TAG, "Server Message = " + serverMessage);
+-
++        JSONObject jsonObject = null;
+         try {
+ 
+             // get user name
+-            JSONObject jsonObject = new JSONObject(serverMessage);
++            jsonObject = new JSONObject(serverMessage);
+             textViewUserName.setText(jsonObject.getString("name"));
++            userToken = jsonObject.getString("token");
++            User.getInstance().setUserToken(userToken);
+         } catch (JSONException e) {
+ 
+             e.printStackTrace();
+         }
+ 
++        adapter.setOnItemClickListener((holder, view, position) -> {
++
++            StoreData storeData = adapter.getItem(position);
++            Log.d(TAG, "Store Data. getStoreName = " + storeData.getStoreName());
++            Toast.makeText(getApplicationContext(), storeData.getStoreName(), Toast.LENGTH_LONG).show();
++            Intent intent = new Intent(UserMainActivity.this, UserStoreProductActivity.class);
++            intent.putExtra("storeID", storeData.getStoreID());
++            intent.putExtra("storeName", storeData.getStoreName());
++            intent.putExtra("storeAddress", storeData.getStoreAddress());
++            intent.putExtra("userToken", userToken);
++            startActivity(intent);
++        });
+     }
+ 
++    @SuppressLint("NonConstantResourceId")
+     @OnClick(R.id.imageViewMenu)
+     public void onMenuClicked() {
+ 
+@@ -97,48 +116,43 @@
+         popupMenu.show();
+     }
+ 
++    @SuppressLint("NonConstantResourceId")
+     @OnClick(R.id.buttonViewAllStoreList)
+     public void onViewAllStoreListClicked() {
+ 
+-        RequestAllStores();
++        CallStoreList(ALL_STORE_BASE_URL);
+     }
+ 
+-    private void RequestAllStores() {
+-
+-        String userToken;
+-        JSONObject jsonObject;
+-        try {
++    @SuppressLint("NonConstantResourceId")
++    @OnClick(R.id.buttonViewMyStoreList)
++    public void onViewMyStoreListClicked() {
+ 
+-            Log.d(TAG, serverMessage);
+-            jsonObject = new JSONObject(serverMessage);
+-            userToken = jsonObject.getString("token");
+-        } catch (JSONException e) {
+-
+-            userToken = "Error";
+-            e.printStackTrace();
+-        }
++        CallStoreList(MY_STORE_BASE_URL);
++    }
+ 
++    private void CallStoreList(String url) {
+         Log.d(TAG, "Token = " + userToken);
+ 
+         requestQueue = Volley.newRequestQueue(getApplicationContext());
+-        String finalUserToken = userToken;
+ 
++        adapter.deleteAllItems();
+         StringRequest request = new StringRequest(
+                 Request.Method.GET,
+-                ALL_STORE_BASE_URL,
++                url,
+                 response -> {
+ 
+                     Log.d(TAG, "Response = " + response);
+-                    // TODO : Put the response data into ListView
+ 
+                     RecyclerView recyclerView = findViewById(R.id.rvStoreList);
+ 
+                     LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+                     recyclerView.setLayoutManager(linearLayoutManager);
+ 
+-                    adapter = new RecyclerAdapter();
+                     recyclerView.setAdapter(adapter);
+ 
++                    Intent intent = new Intent(UserMainActivity.this, RecyclerAdapter.class);
++                    intent.putExtra("token", userToken);
++
+                     try {
+                         JSONArray jsonArray = new JSONArray(response);
+                         for (int i = 0; i < jsonArray.length(); i++) {
+@@ -152,7 +166,8 @@
+                                             concat(storeJSONObject.getString("city").concat(", ").
+                                                     concat(storeJSONObject.getString("province").concat(", ").
+                                                             concat(storeJSONObject.getString("country")))));
+-                            storeData data = new storeData();
++                            StoreData data = new StoreData();
++                            data.setStoreID(storeJSONObject.getString("_id"));
+                             data.setStoreName(storeJSONObject.getString("name"));
+                             data.setStoreAddress(storeJSONObject.getString("streetAddress").concat(", ").
+                                     concat(storeJSONObject.getString("city").concat(", ").
+@@ -171,7 +186,7 @@
+             public Map<String, String> getHeaders() {
+ 
+                 HashMap<String, String> params = new HashMap<>();
+-                params.put("Authorization", "Bearer ".concat(finalUserToken));
++                params.put("Authorization", "Bearer ".concat(userToken));
+ 
+                 return params;
+             }
+@@ -182,24 +197,9 @@
+ 
+     private void RequestProfile() {
+ 
+-        String userToken;
+-        JSONObject jsonObject;
+-        try {
+-
+-            Log.d(TAG, serverMessage);
+-            jsonObject = new JSONObject(serverMessage);
+-            userToken = jsonObject.getString("token");
+-        } catch (JSONException e) {
+-
+-            userToken = "Error";
+-            e.printStackTrace();
+-        }
+-
+         Log.d(TAG, "Token = " + userToken);
+ 
+         requestQueue = Volley.newRequestQueue(getApplicationContext());
+-        String finalUserToken = userToken;
+-
+         StringRequest request = new StringRequest(
+                 Request.Method.GET,
+                 PROFILE_BASE_URL,
+@@ -208,7 +208,7 @@
+                     Log.d(TAG, "Response = " + response);
+                     Intent intent = new Intent(getApplicationContext(), UserInformActivity.class);
+                     intent.putExtra(SERVER_MESSAGE, response);
+-                    intent.putExtra("token", finalUserToken);
++                    intent.putExtra("token", userToken);
+                     startActivity(intent);
+                 },
+                 error -> Toast.makeText(UserMainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show()) {
+@@ -216,13 +216,16 @@
+             public Map<String, String> getHeaders() {
+ 
+                 HashMap<String, String> params = new HashMap<>();
+-                params.put("Authorization", "Bearer ".concat(finalUserToken));
++                Log.d(TAG, "getHeaders Token = " + userToken);
++                params.put("Authorization", "Bearer ".concat(userToken));
+ 
+                 return params;
+             }
+         };
+ 
+         requestQueue.add(request);
++
++        userToken = User.getInstance().getUserToken();
+     }
+ }
+ 
+Index: app/src/main/AndroidManifest.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    package=\"com.example.marketapp\">\r\n\r\n    <!-- permission internet -->\r\n    <uses-permission android:name=\"android.permission.INTERNET\" />\r\n\r\n    <application\r\n        android:allowBackup=\"true\"\r\n        android:icon=\"@mipmap/ic_launcher\"\r\n        android:label=\"@string/app_name\"\r\n        android:roundIcon=\"@mipmap/ic_launcher_round\"\r\n        android:supportsRtl=\"true\"\r\n        android:theme=\"@style/AppTheme\">\r\n        <!-- Start Activity -->\r\n        <activity android:name=\".LoginActivity\">\r\n            <intent-filter>\r\n                <action android:name=\"android.intent.action.MAIN\" />\r\n\r\n                <category android:name=\"android.intent.category.LAUNCHER\" />\r\n            </intent-filter>\r\n        </activity>\r\n\r\n        <activity android:name=\".RegisterActivity\" />\r\n        <activity android:name=\".UserMainActivity\" />\r\n        <activity android:name=\".UserInformActivity\" />\r\n        <activity android:name=\".OwnerMainActivity\" />\r\n        <activity android:name=\".OwnerInformActivity\"/>\r\n    </application>\r\n\r\n</manifest>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/AndroidManifest.xml	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ app/src/main/AndroidManifest.xml	(date 1622254814079)
+@@ -6,6 +6,7 @@
+     <uses-permission android:name="android.permission.INTERNET" />
+ 
+     <application
++        android:name=".User"
+         android:allowBackup="true"
+         android:icon="@mipmap/ic_launcher"
+         android:label="@string/app_name"
+@@ -26,6 +27,7 @@
+         <activity android:name=".UserInformActivity" />
+         <activity android:name=".OwnerMainActivity" />
+         <activity android:name=".OwnerInformActivity"/>
++        <activity android:name=".UserStoreProductActivity"/>
+     </application>
+ 
+ </manifest>
+\ No newline at end of file
+Index: app/src/main/java/com/example/marketapp/UserInformActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.marketapp;\r\n\r\nimport android.annotation.SuppressLint;\r\nimport android.app.Activity;\r\nimport android.app.AlertDialog;\r\nimport android.content.Intent;\r\nimport android.os.Bundle;\r\nimport android.util.Log;\r\nimport android.view.View;\r\nimport android.widget.EditText;\r\nimport android.widget.TextView;\r\nimport android.widget.Toast;\r\n\r\nimport androidx.annotation.Nullable;\r\n\r\nimport com.android.volley.Request;\r\nimport com.android.volley.RequestQueue;\r\nimport com.android.volley.toolbox.JsonObjectRequest;\r\nimport com.android.volley.toolbox.Volley;\r\n\r\nimport org.json.JSONException;\r\nimport org.json.JSONObject;\r\n\r\nimport java.util.HashMap;\r\nimport java.util.Map;\r\n\r\nimport butterknife.BindView;\r\nimport butterknife.ButterKnife;\r\nimport butterknife.OnClick;\r\n\r\npublic class UserInformActivity extends Activity {\r\n\r\n    private static final String BASE_URL = \"https://sundaland.herokuapp.com/api/users/profile\";\r\n    private static final String TAG = \"UserInformActivity\";\r\n    private static final String SERVER_MESSAGE = \"serverMessage\";\r\n\r\n    String serverMessage = \"\";\r\n    static RequestQueue requestQueue;\r\n\r\n    @BindView(R.id.textViewUserEmail)\r\n    TextView tvUserEmail;\r\n    @BindView(R.id.textViewUserName)\r\n    TextView tvUserName;\r\n    @BindView(R.id.textViewUserAddress)\r\n    TextView tvUserAddress;\r\n\r\n    String userAddress;\r\n    String userCity;\r\n    String userPostalCode;\r\n    String userCountry;\r\n\r\n    @Override\r\n    protected void onCreate(@Nullable Bundle savedInstanceState) {\r\n        super.onCreate(savedInstanceState);\r\n        setContentView(R.layout.userinformactivity);\r\n\r\n        ButterKnife.bind(this);\r\n\r\n        Intent dataIntent = getIntent();\r\n        serverMessage = dataIntent.getStringExtra(SERVER_MESSAGE);\r\n        Log.d(TAG, \"server Message = \" + serverMessage);\r\n\r\n        JSONObject jsonObject;\r\n        try {\r\n\r\n            jsonObject = new JSONObject(serverMessage);\r\n            tvUserEmail.setText(jsonObject.getString(\"email\"));\r\n            tvUserName.setText(jsonObject.getString(\"name\"));\r\n            Log.d(TAG, jsonObject.getJSONObject(\"userAddress\").getString(\"address\")\r\n                    .concat(\" \")\r\n                    .concat(jsonObject.getJSONObject(\"userAddress\").getString(\"city\"))\r\n                    .concat(\" \")\r\n                    .concat(jsonObject.getJSONObject(\"userAddress\").getString(\"postalCode\"))\r\n                    .concat(\" \")\r\n                    .concat(jsonObject.getJSONObject(\"userAddress\").getString(\"country\"))\r\n            );\r\n            tvUserAddress.setText(jsonObject.getJSONObject(\"userAddress\").getString(\"address\")\r\n                    .concat(\" \")\r\n                    .concat(jsonObject.getJSONObject(\"userAddress\").getString(\"city\"))\r\n                    .concat(\" \")\r\n                    .concat(jsonObject.getJSONObject(\"userAddress\").getString(\"postalCode\"))\r\n                    .concat(\" \")\r\n                    .concat(jsonObject.getJSONObject(\"userAddress\").getString(\"country\"))\r\n            );\r\n        } catch (JSONException e) {\r\n\r\n            e.printStackTrace();\r\n        }\r\n    }\r\n\r\n    @OnClick(R.id.buttonUpdate)\r\n    public void onUpdateButtonClicked() {\r\n\r\n        newProfileDialog();\r\n    }\r\n\r\n    @OnClick(R.id.buttonBack)\r\n    public void onButtonBackClicked() {\r\n\r\n        finish();\r\n    }\r\n\r\n    private void newProfileDialog() {\r\n\r\n        @SuppressLint(\"InflateParams\") View dialogView = getLayoutInflater().inflate(R.layout.addressupdatedialog, null);\r\n        EditText etAddress = dialogView.findViewById(R.id.editTextAddress);\r\n        EditText etCity = dialogView.findViewById(R.id.editTextCity);\r\n        EditText etPostalCode = dialogView.findViewById(R.id.editTextPostalCode);\r\n        EditText etCountry = dialogView.findViewById(R.id.editTextCountry);\r\n\r\n        AlertDialog.Builder builder = new AlertDialog.Builder(this);\r\n        builder.setView(dialogView);\r\n\r\n        builder.setPositiveButton(\"OK\", (dialog, which) -> {\r\n\r\n            userAddress = etAddress.getText().toString();\r\n            userCity = etCity.getText().toString();\r\n            userPostalCode = etPostalCode.getText().toString();\r\n            userCountry = etCountry.getText().toString();\r\n\r\n            UpdateProfile();\r\n        });\r\n\r\n        builder.setNegativeButton(\"Cancel\", null);\r\n\r\n        AlertDialog alertDialog = builder.create();\r\n        alertDialog.show();\r\n    }\r\n\r\n    public void UpdateProfile() {\r\n\r\n        Intent tokenIntent = getIntent();\r\n        String userToken = tokenIntent.getStringExtra(\"token\");\r\n\r\n        JSONObject requestJSONObject = new JSONObject();\r\n\r\n        try {\r\n\r\n            JSONObject addressParam = new JSONObject();\r\n\r\n            Log.d(TAG, \"address = \" + userAddress + \"\\n\" + \"city = \" + userCity + \"\\n\" + \"postalCode = \" + userPostalCode + \"\\n\" + \"Country = \" + userCountry);\r\n            addressParam.put(\"address\", userAddress);\r\n            addressParam.put(\"city\", userCity);\r\n            addressParam.put(\"postalCode\", userPostalCode);\r\n            addressParam.put(\"country\", userCountry);\r\n\r\n            requestJSONObject.put(\"userAddress\", addressParam);\r\n        } catch (JSONException e) {\r\n\r\n            e.printStackTrace();\r\n        }\r\n        requestQueue = Volley.newRequestQueue(getApplicationContext());\r\n\r\n        JsonObjectRequest request = new JsonObjectRequest(\r\n                Request.Method.PUT,\r\n                BASE_URL,\r\n                requestJSONObject,\r\n                response -> {\r\n\r\n                    Log.d(TAG, \"response = \" + response);\r\n                    JSONObject dataJSONObject = null;\r\n                    try {\r\n\r\n                        dataJSONObject = new JSONObject(String.valueOf(response));\r\n                    } catch (JSONException e) {\r\n\r\n                        e.printStackTrace();\r\n                    }\r\n\r\n                    try {\r\n\r\n                        assert dataJSONObject != null;\r\n                        Log.d(TAG, dataJSONObject.getJSONObject(\"userAddress\").getString(\"address\"));\r\n                        tvUserAddress.setText(\r\n                                        dataJSONObject.getJSONObject(\"userAddress\").getString(\"address\").concat(\" \") +\r\n                                        dataJSONObject.getJSONObject(\"userAddress\").getString(\"city\").concat(\" \" ) +\r\n                                        dataJSONObject.getJSONObject(\"userAddress\").getString(\"postalCode\").concat(\" \") +\r\n                                        dataJSONObject.getJSONObject(\"userAddress\").getString(\"country\").concat(\" \")\r\n                                );\r\n                    } catch (JSONException e) {\r\n\r\n                        e.printStackTrace();\r\n                    }\r\n                },\r\n                error -> Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show()) {\r\n\r\n            public Map<String, String> getHeaders() {\r\n\r\n                HashMap<String, String> params = new HashMap<>();\r\n                Log.d(TAG, \"getParams token = \" + userToken);\r\n                assert userToken != null;\r\n                params.put(\"Authorization\", \"Bearer \".concat(userToken));\r\n                return params;\r\n            }\r\n        };\r\n\r\n        requestQueue.add(request);\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/marketapp/UserInformActivity.java	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ app/src/main/java/com/example/marketapp/UserInformActivity.java	(date 1622254814088)
+@@ -177,6 +177,7 @@
+                                         dataJSONObject.getJSONObject("userAddress").getString("postalCode").concat(" ") +
+                                         dataJSONObject.getJSONObject("userAddress").getString("country").concat(" ")
+                                 );
++                        User.getInstance().setUserToken(response.getString("token"));
+                     } catch (JSONException e) {
+ 
+                         e.printStackTrace();
+Index: app/src/main/java/com/example/marketapp/UserStoreProductActivity.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/marketapp/UserStoreProductActivity.java	(date 1622254814092)
++++ app/src/main/java/com/example/marketapp/UserStoreProductActivity.java	(date 1622254814092)
+@@ -0,0 +1,130 @@
++package com.example.marketapp;
++
++import android.annotation.SuppressLint;
++import android.app.Activity;
++import android.content.Intent;
++import android.os.Bundle;
++import android.util.Log;
++import android.widget.ImageView;
++import android.widget.TextView;
++import android.widget.Toast;
++
++import androidx.annotation.Nullable;
++
++import com.android.volley.Request;
++import com.android.volley.RequestQueue;
++import com.android.volley.toolbox.JsonObjectRequest;
++import com.android.volley.toolbox.StringRequest;
++import com.android.volley.toolbox.Volley;
++
++import org.json.JSONException;
++import org.json.JSONObject;
++
++import java.util.HashMap;
++import java.util.Map;
++
++import butterknife.BindView;
++import butterknife.ButterKnife;
++import butterknife.OnClick;
++
++public class UserStoreProductActivity extends Activity {
++
++    private static final String TAG = "UserProductActivity";
++    private static final String BASE_URL = "https://sundaland.herokuapp.com/api/users/store";
++
++    @SuppressLint("NonConstantResourceId")
++    @BindView(R.id.tvStoreName)
++    TextView tvStoreName;
++    @SuppressLint("NonConstantResourceId")
++    @BindView(R.id.tvStoreAddress)
++    TextView tvStoreAddress;
++    @BindView(R.id.ivSubscribe)
++    ImageView ivSubscribe;
++
++    static RequestQueue requestQueue;
++    boolean isSubscribed = false;
++    String userToken;
++    String storeID;
++
++    @Override
++    public void onCreate(@Nullable Bundle savedInstanceState) {
++        super.onCreate(savedInstanceState);
++        setContentView(R.layout.userstoreproductactivity);
++
++        ButterKnife.bind(this);
++
++        Log.d(TAG, "User store product Activity started");
++        // get Data from UserMainActivity
++        Intent intent = getIntent();
++        String storeName = intent.getStringExtra("storeName");
++        String storeAddress = intent.getStringExtra("storeAddress");
++        userToken = intent.getStringExtra("userToken");
++        storeID = intent.getStringExtra("storeID");
++
++        Log.d(TAG, "Store ID = " + storeID);
++        Log.d(TAG, "Store Name = " + storeName);
++        Log.d(TAG, "Store Address = " + storeAddress);
++        Log.d(TAG, "User Token = " + userToken);
++        tvStoreName.setText(storeName);
++        tvStoreAddress.setText(storeAddress);
++    }
++
++    @OnClick(R.id.ivSubscribe)
++    public void onIvSubscribeClicked() {
++
++        requestQueue = Volley.newRequestQueue(getApplicationContext());
++
++        if (isSubscribed) {
++
++            // if the store is in User's database, the star should be full.
++            // if the star is clicked, star will be changed to outline star, and remove the store from user database
++            ivSubscribe.setImageResource(R.drawable.ic_outline_star_outline_24);
++            isSubscribed = !isSubscribed;
++            Toast.makeText(this, "Subscribe Cancel", Toast.LENGTH_SHORT).show();
++
++            // TODO : Take off the store from the User database
++
++        } else {
++
++            // if the store is not in User's database, the store should be outlined
++            // if the star is clicked, star will be changed to full star, and put the store data into user database
++            ivSubscribe.setImageResource(R.drawable.ic_baseline_star_24);
++            isSubscribed = !isSubscribed;
++            Toast.makeText(this, "Subscribe Success", Toast.LENGTH_SHORT).show();
++
++            // TODO : Add the store into the User database
++
++            JSONObject requestJsonOBJECT = new JSONObject();
++            Log.d(TAG, "Store ID = " + storeID);
++            try {
++
++                requestJsonOBJECT.put("storeId", storeID);
++            } catch (JSONException e) {
++
++                e.printStackTrace();
++            }
++
++            JsonObjectRequest request = new JsonObjectRequest(
++                    Request.Method.POST,
++                    BASE_URL,
++                    requestJsonOBJECT,
++                    response -> {
++
++                        Log.d(TAG, "Response = " + response);
++                        Toast.makeText(UserStoreProductActivity.this, response.toString(), Toast.LENGTH_LONG).show();
++                        },
++                    error -> Toast.makeText(UserStoreProductActivity.this, error.getMessage(), Toast.LENGTH_LONG).show()) {
++
++                public Map<String, String> getHeaders() {
++
++                    HashMap<String, String> params = new HashMap<>();
++                    params.put("Authorization", "Bearer ".concat(userToken));
++
++                    return params;
++                }
++            };
++
++            requestQueue.add(request);
++        }
++    }
++}
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/compiler.xml	(date 1622254814073)
++++ .idea/compiler.xml	(date 1622254814073)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="CompilerConfiguration">
++    <bytecodeTargetLevel target="1.8" />
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/java/com/example/marketapp/OnStoreItemClickListener.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/marketapp/OnStoreItemClickListener.java	(date 1622254814082)
++++ app/src/main/java/com/example/marketapp/OnStoreItemClickListener.java	(date 1622254814082)
+@@ -0,0 +1,10 @@
++package com.example.marketapp;
++
++import android.view.View;
++
++import org.json.JSONException;
++
++public interface OnStoreItemClickListener {
++
++    public void onItemClick(RecyclerAdapter.ItemViewHolder holder, View view, int position);
++}
+Index: app/src/main/java/com/example/marketapp/User.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/marketapp/User.java	(date 1622254814087)
++++ app/src/main/java/com/example/marketapp/User.java	(date 1622254814087)
+@@ -0,0 +1,45 @@
++package com.example.marketapp;
++
++import android.app.Application;
++
++public class User extends Application {
++
++    private String userName;
++    private String userToken;
++    private String userAddress;
++
++    public String getUserAddress() {
++        return userAddress;
++    }
++
++    public String getUserName() {
++        return userName;
++    }
++
++    public String getUserToken() {
++        return userToken;
++    }
++
++    public void setUserAddress(String userAddress) {
++        this.userAddress = userAddress;
++    }
++
++    public void setUserName(String userName) {
++        this.userName = userName;
++    }
++
++    public void setUserToken(String userToken) {
++        this.userToken = userToken;
++    }
++
++    private static User instance = null;
++
++    public static synchronized User getInstance() {
++
++        if (null == instance) {
++
++            instance = new User();
++        }
++        return instance;
++    }
++}
+Index: .idea/codeStyles/codeStyleConfig.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/codeStyles/codeStyleConfig.xml	(date 1622254814072)
++++ .idea/codeStyles/codeStyleConfig.xml	(date 1622254814072)
+@@ -0,0 +1,5 @@
++<component name="ProjectCodeStyleConfiguration">
++  <state>
++    <option name="PREFERRED_PROJECT_CODE_STYLE" value="Default" />
++  </state>
++</component>
+\ No newline at end of file
+Index: app/src/main/res/layout/userstoreproductactivity.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/userstoreproductactivity.xml	(date 1622254814099)
++++ app/src/main/res/layout/userstoreproductactivity.xml	(date 1622254814099)
+@@ -0,0 +1,41 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:orientation="horizontal">
++
++    <LinearLayout
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:orientation="vertical">
++
++        <TextView
++            android:id="@+id/tvStoreName"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:textSize="20sp" />
++
++        <TextView
++            android:id="@+id/tvStoreAddress"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:textSize="15sp" />
++    </LinearLayout>
++
++    <View
++        android:layout_width="0dp"
++        android:layout_height="0dp"
++        android:layout_weight="1" />
++
++    <LinearLayout
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content">
++
++        <ImageView
++            android:id="@+id/ivSubscribe"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:src="@drawable/ic_outline_star_outline_24"
++            android:layout_gravity="end" />
++    </LinearLayout>
++</LinearLayout>
+\ No newline at end of file
+Index: app/src/main/res/drawable/ic_outline_star_outline_24.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/ic_outline_star_outline_24.xml	(date 1622254814094)
++++ app/src/main/res/drawable/ic_outline_star_outline_24.xml	(date 1622254814094)
+@@ -0,0 +1,10 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:viewportWidth="24"
++    android:viewportHeight="24"
++    android:tint="?attr/colorControlNormal">
++  <path
++      android:fillColor="@android:color/white"
++      android:pathData="M22,9.24l-7.19,-0.62L12,2 9.19,8.63 2,9.24l5.46,4.73L5.82,21 12,17.27 18.18,21l-1.63,-7.03L22,9.24zM12,15.4l-3.76,2.27 1,-4.28 -3.32,-2.88 4.38,-0.38L12,6.1l1.71,4.04 4.38,0.38 -3.32,2.88 1,4.28L12,15.4z"/>
++</vector>
+Index: app/src/main/res/drawable/ic_baseline_star_24.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/drawable/ic_baseline_star_24.xml	(date 1622254814093)
++++ app/src/main/res/drawable/ic_baseline_star_24.xml	(date 1622254814093)
+@@ -0,0 +1,10 @@
++<vector xmlns:android="http://schemas.android.com/apk/res/android"
++    android:width="24dp"
++    android:height="24dp"
++    android:viewportWidth="24"
++    android:viewportHeight="24"
++    android:tint="?attr/colorControlNormal">
++  <path
++      android:fillColor="@android:color/white"
++      android:pathData="M12,17.27L18.18,21l-1.64,-7.03L22,9.24l-7.19,-0.61L12,2 9.19,8.63 2,9.24l5.46,4.73L5.82,21z"/>
++</vector>
+Index: .idea/jarRepositories.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- .idea/jarRepositories.xml	(date 1622254814076)
++++ .idea/jarRepositories.xml	(date 1622254814076)
+@@ -0,0 +1,25 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RemoteRepositoriesConfiguration">
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Maven Central repository" />
++      <option name="url" value="https://repo1.maven.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="jboss.community" />
++      <option name="name" value="JBoss Community repository" />
++      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="BintrayJCenter" />
++      <option name="name" value="BintrayJCenter" />
++      <option name="url" value="https://jcenter.bintray.com/" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="Google" />
++      <option name="name" value="Google" />
++      <option name="url" value="https://dl.google.com/dl/android/maven2/" />
++    </remote-repository>
++  </component>
++</project>
+\ No newline at end of file
+Index: app/src/main/res/layout/usermainactivity.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\r\n    android:layout_width=\"match_parent\"\r\n    android:layout_height=\"match_parent\"\r\n    android:orientation=\"vertical\">\r\n\r\n    <LinearLayout\r\n        android:layout_width=\"match_parent\"\r\n        android:layout_height=\"wrap_content\"\r\n        android:gravity=\"end\"\r\n        android:orientation=\"horizontal\">\r\n\r\n        <ImageView\r\n            android:id=\"@+id/imageViewMenu\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:contentDescription=\"@string/menu\"\r\n            android:src=\"@drawable/ic_menu_black_24dp\" />\r\n    </LinearLayout>\r\n\r\n    <LinearLayout\r\n        android:layout_width=\"match_parent\"\r\n        android:layout_height=\"match_parent\"\r\n        android:orientation=\"vertical\">\r\n\r\n        <TextView\r\n            android:id=\"@+id/textViewUserName\"\r\n            android:layout_width=\"wrap_content\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:textSize=\"20sp\" />\r\n\r\n        <LinearLayout\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:orientation=\"horizontal\">\r\n\r\n            <Button\r\n                android:id=\"@+id/buttonViewAllStoreList\"\r\n                android:layout_width=\"wrap_content\"\r\n                android:layout_height=\"wrap_content\"\r\n                android:layout_weight=\"1\"\r\n                android:text=\"@string/view_all_store_list\" />\r\n\r\n            <Button\r\n                android:id=\"@+id/buttonViewSomeStoreList\"\r\n                android:layout_width=\"wrap_content\"\r\n                android:layout_height=\"wrap_content\"\r\n                android:layout_weight=\"1\"\r\n                android:text=\"@string/view_subscribed_store_list\" />\r\n        </LinearLayout>\r\n\r\n        <androidx.recyclerview.widget.RecyclerView\r\n            android:id=\"@+id/rvStoreList\"\r\n            android:layout_width=\"match_parent\"\r\n            android:layout_height=\"wrap_content\"\r\n            android:background=\"#f0f0f0\"\r\n            android:scrollbars=\"vertical\" />\r\n\r\n    </LinearLayout>\r\n</LinearLayout>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/res/layout/usermainactivity.xml	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ app/src/main/res/layout/usermainactivity.xml	(date 1622254814098)
+@@ -42,7 +42,7 @@
+                 android:text="@string/view_all_store_list" />
+ 
+             <Button
+-                android:id="@+id/buttonViewSomeStoreList"
++                android:id="@+id/buttonViewMyStoreList"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:layout_weight="1"
+Index: app/src/main/java/com/example/marketapp/storeData.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.marketapp;\r\n\r\npublic class storeData {\r\n\r\n    private String storeName;\r\n    private String storeAddress;\r\n\r\n    public String getStoreName() {\r\n\r\n        return storeName;\r\n    }\r\n\r\n    public String getStoreAddress() {\r\n\r\n        return storeAddress;\r\n    }\r\n\r\n    public void setStoreName(String storeName) {\r\n\r\n        this.storeName = storeName;\r\n    }\r\n\r\n    public void setStoreAddress(String storeAddress) {\r\n\r\n        this.storeAddress = storeAddress;\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/src/main/java/com/example/marketapp/storeData.java	(revision f7ddbbc8a05295c918b2ebf27074a69355efddb9)
++++ app/src/main/java/com/example/marketapp/StoreData.java	(date 1622254814128)
+@@ -1,10 +1,15 @@
+ package com.example.marketapp;
+ 
+-public class storeData {
++public class StoreData {
+ 
++    private String storeID;
+     private String storeName;
+     private String storeAddress;
+ 
++    public String getStoreID() {
++        return storeID;
++    }
++
+     public String getStoreName() {
+ 
+         return storeName;
+@@ -15,6 +20,10 @@
+         return storeAddress;
+     }
+ 
++    public void setStoreID(String storeID) {
++        this.storeID = storeID;
++    }
++
+     public void setStoreName(String storeName) {
+ 
+         this.storeName = storeName;

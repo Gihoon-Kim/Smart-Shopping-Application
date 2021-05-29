@@ -1,5 +1,6 @@
 package com.example.marketapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,6 +43,7 @@ public class OwnerMainActivity extends AppCompatActivity {
     private static final String PROFILE_BASE_URL = "https://sundaland.herokuapp.com/api/users/profile";
     private static final String MY_STORE_BASE_URL = "https://sundaland.herokuapp.com/api/stores";
     private static final String ADD_STORE_TO_OWNER_STORE_LIST_BASE_URL = "https://sundaland.herokuapp.com/api/users/store";
+    private static final String DELETE_STORE_URL = "https://sundaland.herokuapp.com/api/stores/";
     private static final String SERVER_MESSAGE = "serverMessage";
     private static final String TAG = "OwnerMainActivity";
 
@@ -50,10 +52,13 @@ public class OwnerMainActivity extends AppCompatActivity {
     static String ownerToken = "";
     private final RecyclerAdapter adapter = new RecyclerAdapter();
 
+    @SuppressLint("NonConstantResourceId")
     @BindView(R.id.btnViewMyStoreList)
     Button btnViewMyStore;
+    @SuppressLint("NonConstantResourceId")
     @BindView(R.id.imageViewOwnerMenu)
     ImageView imageViewOwnerMenu;
+    @SuppressLint("NonConstantResourceId")
     @BindView(R.id.textViewOwnerName)
     TextView tvOwnerName;
 
@@ -85,8 +90,6 @@ public class OwnerMainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        // TODO : after create Owner's product activity, add this to show new activity
-
         adapter.setOnItemClickListener((holder, view, position) -> {
 
             StoreData storeData = adapter.getItem(position);
@@ -110,35 +113,58 @@ public class OwnerMainActivity extends AppCompatActivity {
         tvStoreName.setText(storeData.getStoreName());
         tvStoreAddress.setText(storeData.getStoreAddress());
 
-        // TODO : ADD LISTENERS TO BUTTONS
-        btnViewProduct.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnViewProduct.setOnClickListener(v -> {
 
-                Intent intent = new Intent(OwnerMainActivity.this, OwnerStoreProductActivity.class);
-                intent.putExtra("storeID", storeData.getStoreID());
-                intent.putExtra("storeName", storeData.getStoreName());
-                intent.putExtra("storeAddress", storeData.getStoreAddress());
-                intent.putExtra("ownerToken", ownerToken);
-                startActivity(intent);
-            }
+            Intent intent = new Intent(OwnerMainActivity.this, OwnerStoreProductActivity.class);
+            intent.putExtra("storeID", storeData.getStoreID());
+            intent.putExtra("storeName", storeData.getStoreName());
+            intent.putExtra("storeAddress", storeData.getStoreAddress());
+            intent.putExtra("ownerToken", ownerToken);
+            startActivity(intent);
         });
 
-        btnUpdate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnUpdate.setOnClickListener(v -> UpdateStoreInfo(storeData));
 
-                UpdateStoreInfo(storeData);
-            }
-        });
+        btnDelete.setOnClickListener(v -> DeleteStoreFromDatabase(storeData));
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(dialogView);
 
-        builder.setNegativeButton("Cancel", null);
+        builder.setNegativeButton("Close", null);
 
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
+    }
+
+    private void DeleteStoreFromDatabase(StoreData storeData) {
+
+        new AlertDialog.Builder(this)
+                .setMessage("Really want to remove the store?")
+                .setNegativeButton("No", null)
+                .setPositiveButton("Yes", (dialog, which) -> {
+
+                    requestQueue = Volley.newRequestQueue(getApplicationContext());
+
+                    StringRequest request = new StringRequest(
+                            Request.Method.DELETE,
+                            DELETE_STORE_URL + storeData.getStoreID(),
+                            response -> Log.d(TAG, "Response = " + response),
+                            error -> Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show()) {
+
+                        public Map<String, String> getHeaders() {
+
+                            HashMap<String, String> params = new HashMap<>();
+                            params.put("Authorization", "Bearer ".concat(ownerToken));
+
+                            return params;
+                        }
+                    };
+
+                    requestQueue.add(request);
+
+                    CallStoreList();
+                })
+                .show();
     }
 
     private void UpdateStoreInfo(StoreData storeData) {
@@ -223,7 +249,7 @@ public class OwnerMainActivity extends AppCompatActivity {
                         e.printStackTrace();
                     }
 
-                    CallStoreList(MY_STORE_BASE_URL);
+                    CallStoreList();
                 },
                 error -> Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show()) {
 
@@ -239,6 +265,7 @@ public class OwnerMainActivity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
+    @SuppressLint("NonConstantResourceId")
     @OnClick(R.id.imageViewOwnerMenu)
     public void onOwnerMenuClicked() {
 
@@ -394,13 +421,13 @@ public class OwnerMainActivity extends AppCompatActivity {
         };
 
         requestQueue.add(request);
+
+        CallStoreList();
         // Add the have just created store to owner's store list
         AddToMyStoreList(storeID);
     }
 
     private void AddToMyStoreList(AtomicReference<String> responseID) {
-
-        AtomicReference<String> storeID = responseID;
 
         requestQueue = Volley.newRequestQueue(getApplicationContext());
 
@@ -418,7 +445,7 @@ public class OwnerMainActivity extends AppCompatActivity {
 
                 HashMap<String, String> params = new HashMap<>();
                 params.put("Authorization", "Bearer ".concat(ownerToken));
-                params.put("_id", String.valueOf(storeID));
+                params.put("_id", String.valueOf(responseID));
 
                 return params;
             }
@@ -427,16 +454,15 @@ public class OwnerMainActivity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
+    @SuppressLint("NonConstantResourceId")
     @OnClick(R.id.btnViewMyStoreList)
     public void onViewMyStoreClicked() {
 
-        // TODO : when owner clicks the button, store list that belongs to the owner should be appeared
-        // TODO : if there is nothing to show, show error message.
-        CallStoreList(MY_STORE_BASE_URL);
+        CallStoreList();
     }
 
     // modify server to send store information instead of only IDs
-    private void CallStoreList(String url) {
+    private void CallStoreList() {
 
         Log.d(TAG, "Token = " + ownerToken);
 
@@ -445,7 +471,7 @@ public class OwnerMainActivity extends AppCompatActivity {
         adapter.deleteAllItems();
         StringRequest request = new StringRequest(
                 Request.Method.GET,
-                url,
+                OwnerMainActivity.MY_STORE_BASE_URL,
                 response -> {
 
                     Log.d(TAG, "Response = " + response);
